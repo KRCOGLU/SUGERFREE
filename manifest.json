@@ -1,0 +1,16 @@
+{
+  "name": "ZuckerFrei — Dein Körper ohne Zucker",
+  "short_name": "ZuckerFrei",
+  "description": "Tracke deinen zuckerfreien Weg und erfahre was in deinem Körper passiert",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f0e0c",
+  "theme_color": "#e8a427",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["health", "fitness", "lifestyle"],
+  "lang": "de"
+}
