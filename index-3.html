@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#e8a427">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ZuckerFrei">
+<meta name="description" content="Tracke deinen zuckerfreien Weg und erfahre was in deinem Körper passiert">
+<link rel="manifest" href="./manifest.json">
+<title>ZuckerFrei</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f0e0c; --surface:#1a1814; --card:#221f1a; --border:#2e2a24;
+  --accent:#e8a427; --accent2:#c45c2e; --green:#4caf78;
+  --text:#f0ebe2; --muted:#7a7165; --highlight:#f5d08a;
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html { height:100%; }
+body {
+  background:var(--bg); color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  min-height:100%; overflow-x:hidden;
+  padding-bottom:calc(72px + var(--safe-bottom));
+}
+
+/* ── HEADER ── */
+header {
+  text-align:center;
+  padding:calc(1.5rem + var(--safe-top)) 1.5rem 1rem;
+  background:linear-gradient(180deg,rgba(15,14,12,0.98) 0%,transparent 100%);
+  position:sticky; top:0; z-index:50;
+}
+.logo-row { display:flex; align-items:center; justify-content:center; gap:0.6rem; }
+.logo-icon {
+  width:36px; height:36px; border-radius:10px;
+  background:var(--accent); display:flex; align-items:center;
+  justify-content:center; font-size:1.1rem; flex-shrink:0;
+}
+h1 {
+  font-family:'Playfair Display',serif;
+  font-size:1.8rem; font-weight:900; letter-spacing:-0.02em;
+}
+h1 span { color:var(--accent); }
+.app-version { font-size:0.65rem; color:var(--muted); letter-spacing:0.15em; text-transform:uppercase; margin-top:0.15rem; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position:fixed; bottom:0; left:0; right:0; z-index:100;
+  background:rgba(22,20,17,0.97);
+  backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+  display:flex;
+  padding-bottom:var(--safe-bottom);
+}
+.nav-item {
+  flex:1; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:0.2rem;
+  padding:0.6rem 0.3rem;
+  background:none; border:none; cursor:pointer;
+  color:var(--muted); transition:color 0.2s;
+  font-family:'DM Sans',sans-serif;
+}
+.nav-item.active { color:var(--accent); }
+.nav-icon { font-size:1.3rem; line-height:1; }
+.nav-label { font-size:0.6rem; letter-spacing:0.05em; text-transform:uppercase; }
+
+/* ── PAGES ── */
+.page { display:none; padding:1rem 1rem 1.5rem; max-width:600px; margin:0 auto; animation:fadeUp 0.25s ease; overflow:hidden; }
+.page.active { display:block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── CARDS ── */
+.card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:1.2rem; padding:1.3rem;
+  margin-bottom:0.9rem; position:relative; overflow:hidden;
+  width:100%; box-sizing:border-box;
+}
+.card-glow::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(ellipse at top,rgba(232,164,39,0.07),transparent 70%);
+  pointer-events:none;
+}
+.card-label {
+  font-size:0.65rem; letter-spacing:0.18em; text-transform:uppercase;
+  color:var(--muted); margin-bottom:1rem;
+}
+.section-title {
+  font-family:'Playfair Display',serif; font-size:1.1rem;
+  margin-bottom:0.7rem; color:var(--text);
+}
+
+/* ── TIMER ── */
+.timer-big {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(2.8rem,14vw,5rem); font-weight:700;
+  color:var(--accent); line-height:1; letter-spacing:-0.03em;
+  text-align:center; margin:0.5rem 0;
+}
+.timer-sub { text-align:center; color:var(--muted); font-size:0.85rem; margin-bottom:1.2rem; }
+
+.status-pill {
+  display:inline-flex; align-items:center; gap:0.4rem;
+  background:rgba(76,175,120,0.1); border:1px solid rgba(76,175,120,0.3);
+  color:var(--green); font-size:0.75rem; padding:0.35rem 0.9rem;
+  border-radius:2rem; margin:0 auto 1.2rem; display:flex; width:fit-content;
+}
+.pulse { width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;flex-shrink:0; }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* ── INPUTS ── */
+.input-label { font-size:0.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; display:block; margin-bottom:0.35rem; }
+.zf-input {
+  width:100%; background:var(--surface); border:1px solid var(--border);
+  color:var(--text); font-family:'DM Sans',sans-serif; font-size:1rem;
+  padding:0.65rem 0.9rem; border-radius:0.75rem; outline:none;
+}
+.zf-input:focus { border-color:var(--accent); }
+.input-group { margin-bottom:0.9rem; }
+
+/* ── BUTTONS ── */
+.btn-primary {
+  width:100%; background:var(--accent); color:#0f0e0c; border:none;
+  font-family:'DM Sans',sans-serif; font-size:0.9rem; font-weight:700;
+  padding:0.85rem; border-radius:1rem; cursor:pointer;
+  transition:all 0.2s; letter-spacing:0.04em;
+}
+.btn-primary:active { transform:scale(0.98); opacity:0.9; }
+.btn-ghost {
+  background:transparent; color:var(--muted); border:1px solid var(--border);
+  font-family:'DM Sans',sans-serif; font-size:0.78rem;
+  padding:0.45rem 1rem; border-radius:2rem; cursor:pointer;
+}
+
+/* ── PILLS ── */
+.pill-row { display:flex; flex-wrap:wrap; gap:0.4rem; justify-content:center; margin-bottom:0.9rem; }
+.pill {
+  background:var(--surface); border:1px solid var(--border); color:var(--muted);
+  font-family:'DM Sans',sans-serif; font-size:0.8rem;
+  padding:0.45rem 1rem; border-radius:2rem; cursor:pointer; transition:all 0.18s;
+}
+.pill.active { background:var(--accent); color:#0f0e0c; border-color:var(--accent); font-weight:600; }
+
+/* ── MILESTONES ── */
+.milestone {
+  display:flex; gap:0.9rem; padding:1rem;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:1rem; margin-bottom:0.7rem; transition:all 0.3s;
+  position:relative; overflow:hidden;
+}
+.milestone.reached { border-color:rgba(232,164,39,0.45); }
+.milestone.reached::before { content:''; position:absolute; left:0;top:0;bottom:0; width:3px; background:var(--accent); }
+.m-time { min-width:60px; font-family:'Playfair Display',serif; font-size:0.95rem; font-weight:700; color:var(--accent); line-height:1.2; }
+.m-title { font-size:0.88rem; font-weight:500; margin-bottom:0.25rem; }
+.m-desc { font-size:0.78rem; color:var(--muted); line-height:1.5; }
+.m-tags { display:flex; flex-wrap:wrap; gap:0.25rem; margin-top:0.45rem; }
+.m-tag { font-size:0.65rem; padding:0.15rem 0.55rem; border-radius:1rem; background:rgba(232,164,39,0.1); color:var(--accent); border:1px solid rgba(232,164,39,0.2); }
+.locked { opacity:0.38; }
+
+/* ── BODY ORGANS ── */
+.body-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.7rem; }
+.body-card { background:var(--card); border:1px solid var(--border); border-radius:1rem; padding:1rem; }
+.body-emoji { font-size:1.5rem; margin-bottom:0.4rem; }
+.body-name { font-family:'Playfair Display',serif; font-size:0.95rem; font-weight:700; margin-bottom:0.5rem; }
+.body-item { display:flex; gap:0.5rem; margin-bottom:0.4rem; font-size:0.75rem; }
+.b-time { background:rgba(232,164,39,0.12); color:var(--accent); font-size:0.62rem; padding:0.1rem 0.45rem; border-radius:1rem; white-space:nowrap; align-self:flex-start; margin-top:1px; flex-shrink:0; }
+.b-text { color:var(--muted); line-height:1.4; }
+
+/* ── SUGAR TYPES ── */
+.sugar-card { background:var(--card); border:1px solid var(--border); border-radius:1rem; padding:1.2rem; margin-bottom:0.7rem; cursor:pointer; transition:border-color 0.2s; }
+.sugar-card.open { border-color:var(--accent); }
+.sugar-head { display:flex; align-items:center; gap:0.8rem; margin-bottom:0.7rem; }
+.sugar-icon { width:40px;height:40px;border-radius:0.65rem;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0; }
+.sugar-name { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; }
+.sugar-aka { font-size:0.7rem; color:var(--muted); }
+.bar-row { display:flex; align-items:center; gap:0.7rem; margin-bottom:0.7rem; }
+.bar-lbl { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); min-width:45px; }
+.bar-track { flex:1; height:5px; background:var(--border); border-radius:3px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:3px; }
+.bar-pct { font-size:0.7rem; min-width:28px; }
+.sugar-desc { font-size:0.8rem; color:var(--muted); line-height:1.55; }
+.sugar-effects { display:none; margin-top:0.9rem; animation:fadeUp 0.25s ease; }
+.sugar-card.open .sugar-effects { display:block; }
+.effect-row { display:flex; gap:0.6rem; margin-bottom:0.55rem; }
+.effect-em { font-size:0.95rem; flex-shrink:0; margin-top:1px; }
+.effect-txt { font-size:0.78rem; color:var(--text); line-height:1.5; }
+.effect-txt strong { color:var(--highlight); }
+.divider { text-align:center; color:var(--muted); font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; margin:0.8rem 0; display:flex; align-items:center; gap:0.8rem; }
+.divider::before,.divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* ── UHRZEIT ── */
+.time-big { font-family:'Playfair Display',serif; font-size:clamp(2rem,12vw,3.5rem); font-weight:700; color:var(--accent); text-align:center; display:block; width:100%; background:none; border:none; outline:none; cursor:pointer; margin:0.5rem 0; }
+.food-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-bottom:1rem; }
+.food-btn { background:var(--surface); border:1px solid var(--border); border-radius:0.8rem; padding:0.7rem 0.5rem; text-align:center; cursor:pointer; transition:all 0.18s; }
+.food-btn.active { background:rgba(232,164,39,0.1); border-color:var(--accent); }
+.food-em { font-size:1.3rem; }
+.food-nm { font-size:0.78rem; color:var(--text); margin-top:0.2rem; }
+.uhr-step { display:flex; gap:0.8rem; background:var(--card); border:1px solid var(--border); border-radius:1rem; padding:0.9rem 1rem; margin-bottom:0.6rem; animation:fadeUp 0.3s ease both; }
+.uhr-time { min-width:55px; font-family:'Playfair Display',serif; font-size:0.88rem; font-weight:700; color:var(--accent); line-height:1.3; }
+.uhr-title { font-size:0.85rem; font-weight:500; margin-bottom:0.2rem; }
+.uhr-desc { font-size:0.77rem; color:var(--muted); line-height:1.5; }
+.feel-row { display:flex; flex-wrap:wrap; gap:0.3rem; margin-top:0.4rem; }
+.feel-tag { font-size:0.67rem; padding:0.15rem 0.55rem; border-radius:1rem; border:1px solid; }
+.feel-bad { background:rgba(196,92,46,0.1); color:#e07050; border-color:rgba(196,92,46,0.3); }
+.feel-ok { background:rgba(76,175,120,0.1); color:var(--green); border-color:rgba(76,175,120,0.3); }
+.feel-neu { background:rgba(232,164,39,0.1); color:var(--accent); border-color:rgba(232,164,39,0.3); }
+.uhr-warn { background:var(--card); border:1px solid var(--border); border-radius:1rem; padding:1rem; margin-bottom:0.8rem; font-size:0.82rem; line-height:1.5; }
+.uhr-warn strong { color:var(--text); }
+.verdict { background:linear-gradient(135deg,var(--card),rgba(232,164,39,0.05)); border:1px solid rgba(232,164,39,0.3); border-radius:1rem; padding:1.1rem; margin-top:0.5rem; }
+.verdict-title { font-family:'Playfair Display',serif; font-size:0.95rem; color:var(--accent); margin-bottom:0.4rem; }
+.verdict-txt { font-size:0.8rem; color:var(--muted); line-height:1.6; }
+.verdict-txt strong { color:var(--text); }
+
+/* ── AKTIVITÄT ── */
+.act-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-bottom:0.5rem; }
+.act-cat-label { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.12em; color:var(--accent); margin:0.9rem 0 0.4rem; font-weight:600; }
+/* ── ESSEN SCANNER ── */
+.scan-btn { width:100%; background:linear-gradient(135deg,#1a1814,#221f1a); border:2px dashed var(--accent); color:var(--accent); font-family:'DM Sans',sans-serif; font-size:1rem; font-weight:600; padding:1.3rem; border-radius:1rem; cursor:pointer; text-align:center; margin-bottom:0.9rem; }
+.scan-btn:active { opacity:0.8; }
+#scannerVideo { width:100%; border-radius:1rem; display:none; max-height:250px; object-fit:cover; }
+.food-log-item { display:flex; align-items:center; gap:0.7rem; background:var(--card); border:1px solid var(--border); border-radius:0.9rem; padding:0.8rem; margin-bottom:0.5rem; animation:fadeUp 0.25s ease; }
+.food-log-em { font-size:1.2rem; }
+.food-log-name { font-size:0.83rem; font-weight:500; }
+.food-log-sub { font-size:0.7rem; color:var(--muted); }
+.food-log-sugar { text-align:right; margin-left:auto; }
+.food-log-g { font-family:'Playfair Display',serif; font-size:1rem; color:#e07050; }
+.food-log-lbl { font-size:0.62rem; color:var(--muted); }
+.body-effect-row { display:flex; gap:0.8rem; background:var(--card); border:1px solid var(--border); border-radius:1rem; padding:0.9rem 1rem; margin-bottom:0.6rem; animation:fadeUp 0.3s ease both; }
+.be-time { min-width:55px; font-family:'Playfair Display',serif; font-size:0.85rem; font-weight:700; color:var(--accent); line-height:1.3; }
+.be-title { font-size:0.85rem; font-weight:500; margin-bottom:0.2rem; }
+.be-desc { font-size:0.77rem; color:var(--muted); line-height:1.5; }
+.be-organs { display:flex; flex-wrap:wrap; gap:0.25rem; margin-top:0.4rem; }
+.be-organ { font-size:0.63rem; padding:0.12rem 0.5rem; border-radius:1rem; background:rgba(232,164,39,0.1); color:var(--accent); border:1px solid rgba(232,164,39,0.2); }
+.sugar-meter { height:12px; background:var(--border); border-radius:6px; overflow:hidden; margin:0.5rem 0; }
+.sugar-meter-fill { height:100%; border-radius:6px; background:linear-gradient(90deg,#4caf78,#e8a427,#c45c2e); transition:width 0.8s ease; }
+.search-result-item { display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:1px solid var(--border); border-radius:0.75rem; padding:0.8rem; margin-bottom:0.4rem; cursor:pointer; }
+.search-result-item:active { border-color:var(--accent); }
+.sri-name { font-size:0.83rem; font-weight:500; }
+.sri-sugar { font-size:0.75rem; color:var(--accent); }
+.sri-sub { font-size:0.7rem; color:var(--muted); }
+.act-btn { background:var(--surface); border:1px solid var(--border); border-radius:0.85rem; padding:0.7rem 0.4rem; text-align:center; cursor:pointer; transition:all 0.18s; }
+.act-btn.active { background:rgba(232,164,39,0.1); border-color:var(--accent); }
+.act-em { font-size:1.4rem; }
+.act-nm { font-size:0.72rem; color:var(--text); margin-top:0.2rem; }
+.act-met { font-size:0.6rem; color:var(--muted); }
+.slider-row { margin-bottom:1rem; }
+.slider-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem; }
+.slider-val { font-family:'Playfair Display',serif; font-size:0.9rem; color:var(--accent); }
+input[type=range] { width:100%; accent-color:var(--accent); height:4px; }
+.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; margin-bottom:0.9rem; }
+.stat-box { background:var(--card); border:1px solid var(--border); border-radius:1rem; padding:0.9rem; text-align:center; }
+.stat-val { font-family:'Playfair Display',serif; font-size:1.7rem; font-weight:700; color:var(--accent); line-height:1; }
+.stat-lbl { font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:0.2rem; }
+.stat-sub { font-size:0.7rem; color:var(--muted); margin-top:0.15rem; }
+.equiv-row { display:flex; gap:0.5rem; flex-wrap:wrap; }
+.equiv-box { flex:1; min-width:70px; text-align:center; background:var(--surface); border-radius:0.75rem; padding:0.65rem 0.3rem; }
+.equiv-em { font-size:1.2rem; }
+.equiv-val { font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--accent); }
+.equiv-lbl { font-size:0.63rem; color:var(--muted); }
+.organ-card { display:flex; gap:0.8rem; background:var(--card); border:1px solid var(--border); border-radius:1rem; padding:1rem; margin-bottom:0.65rem; animation:fadeUp 0.35s ease both; }
+.organ-em { font-size:1.4rem; flex-shrink:0; margin-top:2px; }
+.organ-name { font-weight:600; font-size:0.88rem; margin-bottom:0.2rem; }
+.organ-desc { font-size:0.77rem; color:var(--muted); line-height:1.5; }
+.organ-desc strong { color:var(--highlight); }
+.organ-status { display:inline-block; font-size:0.65rem; padding:0.15rem 0.55rem; border-radius:1rem; margin-top:0.35rem; background:rgba(76,175,120,0.1); color:var(--green); border:1px solid rgba(76,175,120,0.3); }
+.organ-status.warn { background:rgba(232,164,39,0.1); color:var(--accent); border-color:rgba(232,164,39,0.3); }
+.burn-track { height:8px; background:var(--border); border-radius:4px; overflow:hidden; margin:0.5rem 0; }
+.burn-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,#4caf78,#e8a427); transition:width 1s ease; }
+
+/* ── LIVE DASHBOARD ── */
+.log-item { display:flex; align-items:center; gap:0.7rem; background:var(--card); border:1px solid var(--border); border-radius:0.9rem; padding:0.8rem; margin-bottom:0.5rem; animation:fadeUp 0.25s ease; }
+.log-em { font-size:1.2rem; }
+.log-name { font-size:0.83rem; font-weight:500; }
+.log-sub { font-size:0.72rem; color:var(--muted); }
+.log-sugar { text-align:right; }
+.log-g { font-family:'Playfair Display',serif; font-size:1rem; color:var(--accent); }
+.log-glbl { font-size:0.62rem; color:var(--muted); }
+.remove-btn { background:none; border:none; color:var(--muted); cursor:pointer; font-size:0.95rem; padding:0.2rem; flex-shrink:0; }
+.big-number { font-family:'Playfair Display',serif; font-size:4rem; font-weight:900; color:var(--accent); line-height:1; text-align:center; }
+.big-label { font-size:0.8rem; color:var(--muted); text-align:center; margin-top:0.2rem; }
+.three-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.5rem; }
+.mini-stat { background:var(--card); border:1px solid var(--border); border-radius:0.9rem; padding:0.7rem 0.4rem; text-align:center; }
+.mini-em { font-size:1.1rem; }
+.mini-val { font-family:'Playfair Display',serif; font-size:1rem; color:var(--accent); }
+.mini-lbl { font-size:0.62rem; color:var(--muted); }
+
+/* ── INSTALL BANNER ── */
+.install-banner { background:linear-gradient(135deg,rgba(232,164,39,0.15),rgba(232,164,39,0.05)); border:1px solid rgba(232,164,39,0.3); border-radius:1rem; padding:1rem 1.1rem; margin-bottom:0.9rem; display:flex; align-items:center; gap:0.9rem; }
+.install-txt { flex:1; font-size:0.8rem; line-height:1.5; }
+.install-txt strong { color:var(--accent); display:block; margin-bottom:0.2rem; }
+/* ── LANGUAGE ── */
+.lang-btn { background:var(--surface); border:1px solid var(--border); color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.7rem; font-weight:600; padding:0.3rem 0.5rem; border-radius:0.5rem; cursor:pointer; transition:all 0.18s; letter-spacing:0.05em; }
+.lang-btn.active { background:var(--accent); color:#0f0e0c; border-color:var(--accent); }
+.install-btn { background:var(--accent); color:#0f0e0c; border:none; font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:700; padding:0.5rem 1rem; border-radius:0.7rem; cursor:pointer; white-space:nowrap; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo-row">
+    <div class="logo-icon">🍬</div>
+    <div>
+      <h1>Zucker<span>Frei</span></h1>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:0.3rem">
+      <button onclick="setLang('de')" id="langDE" class="lang-btn active">DE</button>
+      <button onclick="setLang('en')" id="langEN" class="lang-btn">EN</button>
+      <button onclick="setLang('fr')" id="langFR" class="lang-btn">FR</button>
+    </div>
+  </div>
+</header>
+
+<!-- PAGES -->
+
+<!-- ① TIMER -->
+<div id="page-timer" class="page active">
+
+  <div id="installBanner" class="install-banner" style="display:none">
+    <div style="font-size:1.5rem">📲</div>
+    <div class="install-txt">
+      <strong>App installieren</strong>
+      Füge ZuckerFrei zum Startbildschirm hinzu — dann läuft sie wie eine echte App!
+    </div>
+    <button class="install-btn" onclick="installApp()">Installieren</button>
+  </div>
+
+  <div class="card card-glow">
+    <div class="card-label">Zuckerfrei seit</div>
+
+    <div id="timerDisplay" class="timer-big">00:00:00</div>
+    <div id="timerSub" class="timer-sub">Starte deinen Tracker</div>
+
+    <div id="statusPill" class="status-pill" style="display:none">
+      <span class="pulse"></span> Zuckerfrei — Du schaffst das!
+    </div>
+
+    <div id="startForm">
+      <div class="input-group">
+        <label class="input-label">Wann hast du aufgehört?</label>
+        <input type="datetime-local" id="startTime" class="zf-input">
+      </div>
+      <button class="btn-primary" onclick="startTimer()">Tracker starten 🚀</button>
+    </div>
+
+    <button id="resetBtn" class="btn-ghost" onclick="resetTimer()" style="display:none;margin:0.8rem auto 0;display:none;width:100%;margin-top:0.8rem">Zurücksetzen</button>
+  </div>
+
+  <div class="section-title">Deine Meilensteine</div>
+  <div id="milestoneList"></div>
+</div>
+
+<!-- ② KÖRPER -->
+<div id="page-koerper" class="page">
+  <p style="color:var(--muted);font-size:0.82rem;margin-bottom:1rem">Was mit deinen Organen passiert — Schritt für Schritt</p>
+  <div class="body-grid" id="bodyGrid"></div>
+</div>
+
+<!-- ③ ZUCKERARTEN -->
+<div id="page-zucker" class="page">
+  <p style="color:var(--muted);font-size:0.82rem;margin-bottom:1rem">Tippe auf eine Zuckerart für Details</p>
+  <div id="sugarGrid"></div>
+</div>
+
+<!-- ④ UHRZEIT -->
+<div id="page-uhrzeit" class="page">
+  <p style="color:var(--muted);font-size:0.82rem;margin-bottom:1rem">Wann isst du was — und wie fühlst du dich danach?</p>
+
+  <div class="card">
+    <div class="card-label">Uhrzeit</div>
+    <input type="time" id="eatTime" value="21:00" class="time-big">
+    <p style="color:var(--muted);font-size:0.75rem;text-align:center">Jetzt: <span id="nowTime" style="color:var(--accent)"></span></p>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Was hast du gegessen?</div>
+    <div class="food-grid" id="foodPicker"></div>
+    <button class="btn-primary" onclick="runUhrzeit()">Analysieren 🔍</button>
+  </div>
+
+  <div id="uhrzeitResult"></div>
+</div>
+
+<!-- ⑤ AKTIVITÄT -->
+<div id="page-activity" class="page">
+  <p style="color:var(--muted);font-size:0.82rem;margin-bottom:1rem">Gib deine Aktivität ein und sieh was in deinen Organen passiert</p>
+
+  <!-- Profil -->
+  <div class="card">
+    <div class="card-label">Dein Profil</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.7rem">
+      <div>
+        <label class="input-label">Gewicht (kg)</label>
+        <input type="number" id="actWeight" value="75" class="zf-input">
+      </div>
+      <div>
+        <label class="input-label">Alter</label>
+        <input type="number" id="actAge" value="30" class="zf-input">
+      </div>
+    </div>
+    <div class="pill-row">
+      <button class="pill active" id="sexM" onclick="setSex('m',this)">♂ Mann</button>
+      <button class="pill" id="sexF" onclick="setSex('f',this)">♀ Frau</button>
+    </div>
+  </div>
+
+  <!-- Aktivität -->
+  <div class="card">
+    <div class="card-label">Aktivität</div>
+    <div id="actPicker" style="width:100%;overflow:hidden"></div>
+
+    <div class="slider-row">
+      <div class="slider-top">
+        <label class="input-label" style="margin:0">Schritte</label>
+        <span class="slider-val" id="actStepsLbl">6.000</span>
+      </div>
+      <input type="range" min="0" max="30000" step="500" value="6000" id="actSteps"
+        oninput="document.getElementById('actStepsLbl').textContent=parseInt(this.value).toLocaleString('de-DE')">
+    </div>
+
+    <div class="slider-row">
+      <div class="slider-top">
+        <label class="input-label" style="margin:0">Dauer</label>
+        <span class="slider-val" id="actDurLbl">30 min</span>
+      </div>
+      <input type="range" min="5" max="180" step="5" value="30" id="actDur"
+        oninput="updateDurLbl(this.value,'actDurLbl')">
+    </div>
+
+    <div class="card-label" style="margin-bottom:0.5rem">Intensität</div>
+    <div class="pill-row">
+      <button class="pill active" id="intL" onclick="setInt('low',this)">😌 Leicht</button>
+      <button class="pill" id="intM" onclick="setInt('medium',this)">💪 Mittel</button>
+      <button class="pill" id="intH" onclick="setInt('high',this)">🔥 Intensiv</button>
+    </div>
+
+    <button class="btn-primary" onclick="calcActivity()">Berechnen 🔬</button>
+  </div>
+
+  <div id="actResult"></div>
+</div>
+
+<!-- ⑥ LIVE -->
+<div id="page-live" class="page">
+  <p style="color:var(--muted);font-size:0.82rem;margin-bottom:1rem">Logge deine Aktivitäten den ganzen Tag — sieh deinen Zucker-Abbau live</p>
+
+  <!-- Quick-Add -->
+  <div class="card">
+    <div class="card-label">Aktivität hinzufügen</div>
+    <div id="liveActPicker" style="width:100%;overflow:hidden"></div>
+
+    <div class="slider-row">
+      <div class="slider-top">
+        <label class="input-label" style="margin:0">Schritte</label>
+        <span class="slider-val" id="liveStepsLbl">3.000</span>
+      </div>
+      <input type="range" min="0" max="20000" step="500" value="3000" id="liveSteps"
+        oninput="document.getElementById('liveStepsLbl').textContent=parseInt(this.value).toLocaleString('de-DE')">
+    </div>
+
+    <div class="slider-row">
+      <div class="slider-top">
+        <label class="input-label" style="margin:0">Dauer</label>
+        <span class="slider-val" id="liveDurLbl">30 min</span>
+      </div>
+      <input type="range" min="5" max="120" step="5" value="30" id="liveDur"
+        oninput="updateDurLbl(this.value,'liveDurLbl')">
+    </div>
+
+    <div class="pill-row">
+      <button class="pill active" id="liveIntL" onclick="setLiveInt('low',this)">😌 Leicht</button>
+      <button class="pill" id="liveIntM" onclick="setLiveInt('medium',this)">💪 Mittel</button>
+      <button class="pill" id="liveIntH" onclick="setLiveInt('high',this)">🔥 Intensiv</button>
+    </div>
+
+    <button class="btn-primary" onclick="addLive()">+ Zum Tageslog</button>
+  </div>
+
+  <!-- Log -->
+  <div id="liveLogWrap" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem">
+      <div class="section-title" style="margin:0">Heute</div>
+      <button class="btn-ghost" onclick="clearLive()">Reset</button>
+    </div>
+    <div id="liveLogList"></div>
+  </div>
+
+  <!-- Summary -->
+  <div id="liveSummary"></div>
+</div>
+
+<!-- ⑦ ESSEN -->
+<div id="page-essen" class="page">
+  <p style="color:var(--muted);font-size:0.82rem;margin-bottom:1rem">Scanne oder suche was du gegessen hast — sieh sofort den Zucker & was im Körper passiert</p>
+
+  <!-- Scanner -->
+  <div class="card">
+    <div class="card-label">Produkt scannen oder suchen</div>
+    <button class="scan-btn" onclick="startScanner()">📷 Barcode scannen</button>
+    <video id="scannerVideo" autoplay playsinline></video>
+    <div id="scannerStatus" style="text-align:center;font-size:0.78rem;color:var(--muted);display:none;margin-bottom:0.7rem"></div>
+    <button id="stopScanBtn" onclick="stopScanner()" style="display:none;width:100%;margin-bottom:0.7rem" class="btn-ghost">✕ Scanner stoppen</button>
+
+    <div style="margin-top:0.5rem">
+      <label class="input-label">Oder manuell suchen</label>
+      <div style="display:flex;gap:0.5rem">
+        <input type="text" id="foodSearch" class="zf-input" placeholder="z.B. Coca Cola, Nutella, Apfel..." oninput="searchFood(this.value)" style="flex:1">
+      </div>
+    </div>
+    <div id="searchResults" style="margin-top:0.7rem"></div>
+  </div>
+
+  <!-- Tages-Log -->
+  <div id="essenLogWrap" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem">
+      <div class="section-title" style="margin:0">Heute gegessen</div>
+      <button class="btn-ghost" onclick="clearEssenLog()">Reset</button>
+    </div>
+
+    <!-- Zucker-Tachometer -->
+    <div class="card" style="text-align:center;margin-bottom:0.9rem">
+      <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.4rem">Gesamtzucker heute</div>
+      <div id="totalSugarDisplay" style="font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;color:#e07050;line-height:1">0g</div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.6rem">WHO Empfehlung: max. 25g/Tag</div>
+      <div class="sugar-meter"><div class="sugar-meter-fill" id="sugarMeterFill" style="width:0%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.62rem;color:var(--muted);margin-top:0.2rem">
+        <span>0g</span><span style="color:#4caf78">25g ✅</span><span style="color:#e8a427">50g ⚠️</span><span style="color:#c45c2e">75g+</span>
+      </div>
+    </div>
+
+    <div id="essenLogList"></div>
+  </div>
+
+  <!-- Körper-Reaktion -->
+  <div id="essenBodyEffects"></div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="showPage('timer',this)"><span class="nav-icon">⏱</span><span class="nav-label" data-i18n="nav_timer">Timer</span></button>
+  <button class="nav-item" onclick="showPage('koerper',this)"><span class="nav-icon">🫀</span><span class="nav-label" data-i18n="nav_body">Körper</span></button>
+  <button class="nav-item" onclick="showPage('zucker',this)"><span class="nav-icon">🍭</span><span class="nav-label" data-i18n="nav_sugar">Zucker</span></button>
+  <button class="nav-item" onclick="showPage('activity',this)"><span class="nav-icon">🏃</span><span class="nav-label" data-i18n="nav_activity">Aktivität</span></button>
+  <button class="nav-item" onclick="showPage('live',this)"><span class="nav-icon">📊</span><span class="nav-label" data-i18n="nav_live">Live</span></button>
+  <button class="nav-item" onclick="showPage('essen',this)"><span class="nav-icon">🍽️</span><span class="nav-label" data-i18n="nav_food">Essen</span></button>
+</nav>
+
+<script>
+// ══════════════════════════════════════════
+// SPRACHE / LANGUAGE / LANGUE
+// ══════════════════════════════════════════
+let currentLang = localStorage.getItem('zf_lang') || 'de';
+
+const TR = {
+  de: {
+    nav_timer:'Timer', nav_body:'Körper', nav_sugar:'Zucker',
+    nav_activity:'Aktivität', nav_live:'Live', nav_food:'Essen',
+    timer_since:'Zuckerfrei seit', timer_start:'Starte deinen Tracker',
+    timer_status:'Zuckerfrei — Du schaffst das!',
+    timer_when:'Wann hast du aufgehört?', timer_btn:'Tracker starten 🚀',
+    timer_reset:'Zurücksetzen', timer_milestones:'Deine Meilensteine',
+    body_subtitle:'Was mit deinen Organen passiert — Schritt für Schritt',
+    sugar_subtitle:'Tippe auf eine Zuckerart für Details',
+    sugar_risk:'Risiko', sugar_effect:'Wirkung im Körper',
+    act_profile:'Dein Profil', act_weight:'Gewicht (kg)', act_age:'Alter',
+    act_activity:'Aktivität', act_steps:'Schritte', act_duration:'Dauer',
+    act_intensity:'Intensität', act_low:'😌 Leicht', act_medium:'💪 Mittel', act_high:'🔥 Intensiv',
+    act_calc:'Berechnen 🔬', act_search:'🔍 Sportart suchen...',
+    act_results:'Deine Ergebnisse', act_kcal:'Kalorien', act_sugar_burned:'Zucker weg',
+    act_glycogen:'Glykogen', act_blood:'Blutzucker', act_equiv:'Das entspricht...',
+    act_organs:'Was gerade in deinen Organen passiert',
+    live_subtitle:'Logge deine Aktivitäten den ganzen Tag — sieh deinen Zucker-Abbau live',
+    live_add:'Aktivität hinzufügen', live_add_btn:'+ Zum Tageslog',
+    live_today:'Heute', live_reset:'Reset',
+    live_total:'Heutiger Zucker-Abbau', live_burned:'Zucker heute verbrannt',
+    live_steps:'Schritte', live_active:'Aktiv', live_kcal:'kcal',
+    food_subtitle:'Scanne oder suche was du gegessen hast — sieh sofort den Zucker & was im Körper passiert',
+    food_scan_label:'Produkt scannen oder suchen',
+    food_scan_btn:'📷 Barcode scannen', food_stop_scan:'✕ Scanner stoppen',
+    food_manual:'Oder manuell suchen', food_placeholder:'z.B. Coca Cola, Nutella, Apfel...',
+    food_today:'Heute gegessen', food_who:'WHO Empfehlung: max. 25g/Tag',
+    food_body:'Was jetzt in deinem Körper passiert',
+    install_title:'App installieren',
+    install_desc:'Füge ZuckerFrei zum Startbildschirm hinzu — dann läuft sie wie eine echte App!',
+    install_btn:'Installieren',
+    man:'♂ Mann', woman:'♀ Frau',
+    sugar_burned:'Zucker verbrannt', sugar_per100:'pro 100g',
+    fat_mode:'🔥 Du bist im Fettverbrennungsmodus!',
+    fat_soon:'⏳ Fettverbrennung in ~',
+    minutes:'min', hours:'h', days:'Tag', days_plural:'Tage',
+    sugar_free_days:'zuckerfrei',
+  },
+  en: {
+    nav_timer:'Timer', nav_body:'Body', nav_sugar:'Sugar',
+    nav_activity:'Activity', nav_live:'Live', nav_food:'Food',
+    timer_since:'Sugar-free since', timer_start:'Start your tracker',
+    timer_status:'Sugar-free — You got this!',
+    timer_when:'When did you stop?', timer_btn:'Start Tracker 🚀',
+    timer_reset:'Reset', timer_milestones:'Your Milestones',
+    body_subtitle:'What happens to your organs — step by step',
+    sugar_subtitle:'Tap a sugar type for details',
+    sugar_risk:'Risk', sugar_effect:'Effect in your body',
+    act_profile:'Your Profile', act_weight:'Weight (kg)', act_age:'Age',
+    act_activity:'Activity', act_steps:'Steps', act_duration:'Duration',
+    act_intensity:'Intensity', act_low:'😌 Light', act_medium:'💪 Medium', act_high:'🔥 Intense',
+    act_calc:'Calculate 🔬', act_search:'🔍 Search activity...',
+    act_results:'Your Results', act_kcal:'Calories', act_sugar_burned:'Sugar burned',
+    act_glycogen:'Glycogen', act_blood:'Blood sugar', act_equiv:'This equals...',
+    act_organs:'What is happening in your organs right now',
+    live_subtitle:'Log your activities all day — see your sugar burn live',
+    live_add:'Add activity', live_add_btn:'+ Add to daily log',
+    live_today:'Today', live_reset:'Reset',
+    live_total:"Today's sugar burn", live_burned:'Sugar burned today',
+    live_steps:'Steps', live_active:'Active', live_kcal:'kcal',
+    food_subtitle:'Scan or search what you ate — instantly see the sugar & body effects',
+    food_scan_label:'Scan or search product',
+    food_scan_btn:'📷 Scan barcode', food_stop_scan:'✕ Stop scanner',
+    food_manual:'Or search manually', food_placeholder:'e.g. Coca Cola, Nutella, Apple...',
+    food_today:'Eaten today', food_who:'WHO recommendation: max. 25g/day',
+    food_body:'What is happening in your body right now',
+    install_title:'Install App',
+    install_desc:'Add ZuckerFrei to your home screen — it runs like a real app!',
+    install_btn:'Install',
+    man:'♂ Male', woman:'♀ Female',
+    sugar_burned:'Sugar burned', sugar_per100:'per 100g',
+    fat_mode:'🔥 You are in fat burning mode!',
+    fat_soon:'⏳ Fat burning in ~',
+    minutes:'min', hours:'h', days:'Day', days_plural:'Days',
+    sugar_free_days:'sugar-free',
+  },
+  fr: {
+    nav_timer:'Minuterie', nav_body:'Corps', nav_sugar:'Sucre',
+    nav_activity:'Activité', nav_live:'Live', nav_food:'Aliments',
+    timer_since:'Sans sucre depuis', timer_start:'Démarrer le suivi',
+    timer_status:'Sans sucre — Tu y arrives !',
+    timer_when:'Quand as-tu arrêté ?', timer_btn:'Démarrer 🚀',
+    timer_reset:'Réinitialiser', timer_milestones:'Tes jalons',
+    body_subtitle:'Ce qui arrive à tes organes — étape par étape',
+    sugar_subtitle:'Appuie sur un type de sucre pour les détails',
+    sugar_risk:'Risque', sugar_effect:'Effet dans ton corps',
+    act_profile:'Ton profil', act_weight:'Poids (kg)', act_age:'Âge',
+    act_activity:'Activité', act_steps:'Pas', act_duration:'Durée',
+    act_intensity:'Intensité', act_low:'😌 Léger', act_medium:'💪 Moyen', act_high:'🔥 Intense',
+    act_calc:'Calculer 🔬', act_search:'🔍 Rechercher une activité...',
+    act_results:'Tes résultats', act_kcal:'Calories', act_sugar_burned:'Sucre brûlé',
+    act_glycogen:'Glycogène', act_blood:'Sucre sanguin', act_equiv:'Cela équivaut à...',
+    act_organs:'Ce qui se passe dans tes organes en ce moment',
+    live_subtitle:'Enregistre tes activités toute la journée — vois ta combustion de sucre en direct',
+    live_add:'Ajouter une activité', live_add_btn:'+ Ajouter au journal',
+    live_today:"Aujourd'hui", live_reset:'Réinitialiser',
+    live_total:"Combustion de sucre aujourd'hui", live_burned:"Sucre brûlé aujourd'hui",
+    live_steps:'Pas', live_active:'Actif', live_kcal:'kcal',
+    food_subtitle:'Scanne ou recherche ce que tu as mangé — vois instantanément le sucre et les effets',
+    food_scan_label:'Scanner ou rechercher un produit',
+    food_scan_btn:'📷 Scanner le code-barres', food_stop_scan:'✕ Arrêter le scanner',
+    food_manual:'Ou rechercher manuellement', food_placeholder:'ex. Coca Cola, Nutella, Pomme...',
+    food_today:"Mangé aujourd'hui", food_who:'Recommandation OMS: max. 25g/jour',
+    food_body:'Ce qui se passe dans ton corps maintenant',
+    install_title:"Installer l'app",
+    install_desc:"Ajoute ZuckerFrei à l'écran d'accueil — elle fonctionne comme une vraie app !",
+    install_btn:'Installer',
+    man:'♂ Homme', woman:'♀ Femme',
+    sugar_burned:'Sucre brûlé', sugar_per100:'pour 100g',
+    fat_mode:'🔥 Tu es en mode combustion des graisses !',
+    fat_soon:'⏳ Combustion des graisses dans ~',
+    minutes:'min', hours:'h', days:'Jour', days_plural:'Jours',
+    sugar_free_days:'sans sucre',
+  }
+};
+
+function t(key) { return TR[currentLang][key] || TR['de'][key] || key; }
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('zf_lang', lang);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('lang'+lang.toUpperCase()).classList.add('active');
+  applyTranslations();
+  // Re-render dynamic content
+  renderMilestones();
+  renderBody();
+  renderSugar();
+  renderFoodPicker();
+  renderActPicker('actPicker','act');
+  renderActPicker('liveActPicker','live');
+  if (liveLog.length) { renderLiveLog(); renderLiveSummary(); }
+  if (essenLog.length) { renderEssenLog(); renderEssenBodyEffects(); }
+}
+
+function applyTranslations() {
+  // Nav labels
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (t(key)) el.textContent = t(key);
+  });
+  // Timer
+  document.querySelector('.card-label') && null;
+  const timerSub = document.getElementById('timerSub');
+  if (timerSub && timerSub.textContent === 'Start your tracker' || timerSub?.textContent === 'Starte deinen Tracker' || timerSub?.textContent === 'Démarrer le suivi') {
+    timerSub.textContent = t('timer_start');
+  }
+  // Intensity buttons
+  const intMap = [['intL','act_low'],['intM','act_medium'],['intH','act_high'],
+                  ['liveIntL','act_low'],['liveIntM','act_medium'],['liveIntH','act_high']];
+  intMap.forEach(([id,key]) => { const el=document.getElementById(id); if(el) el.textContent=t(key); });
+  // Sex buttons
+  const sexM=document.getElementById('sexM'); if(sexM) sexM.textContent=t('man');
+  const sexF=document.getElementById('sexF'); if(sexF) sexF.textContent=t('woman');
+  // Scan button
+  const scanBtn=document.querySelector('.scan-btn'); if(scanBtn) scanBtn.textContent=t('food_scan_btn');
+  const stopBtn=document.getElementById('stopScanBtn'); if(stopBtn) stopBtn.textContent=t('food_stop_scan');
+  const foodInput=document.getElementById('foodSearch'); if(foodInput) foodInput.placeholder=t('food_placeholder');
+}
+
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+
+// Legacy aliases — always use current language
+const MILESTONES = null; // use getMilestones()
+const ORGANS = null;     // use getOrgans()
+
+
+const SUGARS = [
+  { name:'Glukose', aka:'Traubenzucker, Dextrose', em:'🍇', color:'#4caf78', bg:'rgba(76,175,120,0.12)', danger:60,
+    desc:'Der einzige Zucker den dein Körper direkt nutzen kann. Gehirn und Muskeln lieben ihn — in Maßen.',
+    effects:[
+      {em:'🧠',tx:'<strong>Gehirn:</strong> Primäre Energiequelle — wichtig für Konzentration'},
+      {em:'💪',tx:'<strong>Muskeln:</strong> Direkte Energie beim Sport, als Glykogen gespeichert'},
+      {em:'⚡',tx:'<strong>Insulin:</strong> Moderate Ausschüttung bei normalen Mengen'},
+      {em:'⚠️',tx:'<strong>Zu viel:</strong> Wird als Fett gespeichert, führt zu Insulinresistenz'}
+    ]
+  },
+  { name:'Fruktose', aka:'Fruchtzucker', em:'🍎', color:'#e8a427', bg:'rgba(232,164,39,0.12)', danger:85,
+    desc:'Natürlich in Früchten okay. Als zugesetzter Sirup (HFCS) einer der gefährlichsten Zuckerarten. Nur die Leber kann ihn verarbeiten.',
+    effects:[
+      {em:'🫀',tx:'<strong>Leber:</strong> Einziges Organ das Fruktose abbaut — Übermengen = Fettleber'},
+      {em:'🩺',tx:'<strong>Kein Insulin:</strong> Führt aber zu Leptin-Resistenz (Sättigungshormon)'},
+      {em:'🍺',tx:'<strong>Wie Alkohol:</strong> Wird ähnlich wie Alkohol metabolisiert'},
+      {em:'✅',tx:'<strong>In Obst okay:</strong> Mit Ballaststoffen und Vitaminen weit weniger schädlich'}
+    ]
+  },
+  { name:'Saccharose', aka:'Haushaltszucker, Weißzucker', em:'🍚', color:'#c45c2e', bg:'rgba(196,92,46,0.12)', danger:90,
+    desc:'50% Glukose + 50% Fruktose. In allem: Kuchen, Limonaden, Joghurt. Doppelter Schaden — beide Wirkungen kombiniert.',
+    effects:[
+      {em:'🔄',tx:'<strong>Doppelschlag:</strong> Glukose belastet Bauchspeicheldrüse, Fruktose die Leber — gleichzeitig'},
+      {em:'📈',tx:'<strong>Blutzucker:</strong> Starker Spike → Insulinpeak → Absturz → Heißhunger'},
+      {em:'😈',tx:'<strong>Sucht:</strong> Aktiviert Dopamin-System ähnlich wie bestimmte Drogen'},
+      {em:'🧬',tx:'<strong>Entzündung:</strong> Fördert systemische Entzündungen bei regelmäßigem Konsum'}
+    ]
+  },
+  { name:'Laktose', aka:'Milchzucker', em:'🥛', color:'#7eb3d9', bg:'rgba(126,179,217,0.12)', danger:30,
+    desc:'Zucker in Milch und Milchprodukten. Harmlos für die meisten — bei Intoleranz fehlt das Enzym Laktase.',
+    effects:[
+      {em:'✅',tx:'<strong>Moderat:</strong> Geringer glykämischer Index — kein starker Anstieg'},
+      {em:'🦴',tx:'<strong>Kalzium:</strong> Kommt mit Kalzium und Protein — natürliches Paket'},
+      {em:'🦠',tx:'<strong>Darm:</strong> Bei Intoleranz: Gärung durch Darmbakterien → Blähungen'},
+      {em:'👶',tx:'<strong>Evolution:</strong> Erwachsene verlieren natürlich die Fähigkeit es zu verdauen'}
+    ]
+  },
+  { name:'Stevia', aka:'Natürliches Süßungsmittel', em:'🌿', color:'#56c97a', bg:'rgba(86,201,122,0.12)', danger:5,
+    desc:'Aus der Stevia-Pflanze. 200–300× süßer als Zucker. Keine Kalorien, kein Blutzuckeranstieg. Einer der sichersten Süßungsmittel.',
+    effects:[
+      {em:'✅',tx:'<strong>Blutzucker:</strong> Kein Einfluss auf Blutzucker oder Insulin'},
+      {em:'🌿',tx:'<strong>Natürlich:</strong> Pflanzlich gewonnen'},
+      {em:'🦷',tx:'<strong>Zähne:</strong> Kein Karies-Risiko'},
+      {em:'⚠️',tx:'<strong>Darm:</strong> Manche berichten Blähungen bei großen Mengen'}
+    ]
+  },
+  { name:'Honig', aka:'Bienenhonig', em:'🍯', color:'#f0b429', bg:'rgba(240,180,41,0.12)', danger:55,
+    desc:'Natürlich aber nicht harmlos. Fruktose + Glukose + Enzyme + Antioxidantien. Besser als Haushaltszucker — aber immer noch Zucker.',
+    effects:[
+      {em:'🌸',tx:'<strong>Antioxidantien:</strong> Polyphenole und antimikrobielle Substanzen'},
+      {em:'📈',tx:'<strong>Blutzucker:</strong> Steigt immer noch an — etwas langsamer'},
+      {em:'🩹',tx:'<strong>Wundheilung:</strong> Antibakteriell — äußerlich auf Wunden wirksam'},
+      {em:'🔢',tx:'<strong>Menge:</strong> 1 TL Honig = 5g Zucker — mit Maß genießen'}
+    ]
+  }
+];
+
+const FOODS = [
+  { id:'schokolade', em:'🍫', name:'Schokolade', zucker:25,
+    steps:[
+      {plus:0,  title:'Du isst die Schokolade',    desc:'Zucker + Koffein + Fett trifft auf deinen Abend-Magen.',         feels:[{t:'Lecker 😋',k:'neu'},{t:'Kurze Freude',k:'ok'}]},
+      {plus:15, title:'Blutzucker-Spike',           desc:'Glukose flutet ins Blut. Bauchspeicheldrüse pumpt Insulin.',    feels:[{t:'Wach 😳',k:'bad'},{t:'Herz schneller',k:'bad'}]},
+      {plus:45, title:'Insulin-Crash',              desc:'Blutzucker fällt schnell. Cortisol steigt — Körper denkt Stress.', feels:[{t:'Unruhig 😰',k:'bad'},{t:'Hungrig',k:'bad'}]},
+      {plus:90, title:'Einschlafen — gestört',      desc:'Erhöhte Körpertemperatur durch Metabolismus. REM unterdrückt.',   feels:[{t:'Einschlafen schwer',k:'bad'},{t:'Unruhig',k:'bad'}]},
+      {plus:480,title:'Morgen danach',              desc:'Schlechter Schlaf. Cortisol hoch, Heißhunger morgens.',          feels:[{t:'Müde 😴',k:'bad'},{t:'Heißhunger',k:'bad'}]}
+    ],
+    verdict:'Schokolade kurz vor dem Schlafen ist einer der schlechtesten Zeitpunkte. <strong>Zucker + Koffein + Fett</strong> stören drei Schlafmechanismen gleichzeitig.'
+  },
+  { id:'gummibären', em:'🐻', name:'Gummibären', zucker:45,
+    steps:[
+      {plus:0,  title:'Gummibären essen',     desc:'Reiner Zucker ohne Fett — extrem schnelle Aufnahme.',               feels:[{t:'Süßer Rush',k:'neu'}]},
+      {plus:10, title:'Extremer Spike',        desc:'Einer der stärksten Glukose-Spikes überhaupt.',                     feels:[{t:'Sehr wach 😳',k:'bad'},{t:'Kribbeln',k:'neu'}]},
+      {plus:40, title:'Harter Crash',          desc:'Schneller als bei fetthaltigen Süßigkeiten. Reaktiver Unterzucker.', feels:[{t:'Zittern',k:'bad'},{t:'Hungrig',k:'bad'}]},
+      {plus:90, title:'Unruhige Nacht',        desc:'Gelatin + Zucker schwer verdaulich. Schlaf sehr flach.',             feels:[{t:'Aufwachen nachts',k:'bad'},{t:'Blähungen',k:'bad'}]},
+      {plus:480,title:'Morgen danach',         desc:'Geschwollen, träge, schlechte Laune.',                               feels:[{t:'Aufgedunsen',k:'bad'},{t:'Müdigkeit',k:'bad'}]}
+    ],
+    verdict:'Gummibären abends sind <strong>purer Zucker ohne Puffer</strong>. Kein Fett, keine Ballaststoffe — Blutzucker schießt sofort hoch und fällt genauso schnell.'
+  },
+  { id:'eis', em:'🍦', name:'Eis', zucker:30,
+    steps:[
+      {plus:0,  title:'Eis essen',        desc:'Kalt + Zucker + Fett. Kälte verlangsamt kurz die Magenentleerung.', feels:[{t:'Erfrischend',k:'ok'},{t:'Gemütlich',k:'neu'}]},
+      {plus:20, title:'Spike — gedämpft', desc:'Fett verlangsamt die Aufnahme etwas.',                               feels:[{t:'Entspannt',k:'ok'}]},
+      {plus:60, title:'Crash + Schwere',  desc:'Bauchspeicheldrüse und Leber arbeiten. Blut in den Bauch.',          feels:[{t:'Schwer 🥴',k:'bad'},{t:'Müde',k:'neu'}]},
+      {plus:480,title:'Morgen danach',    desc:'Leichter als Schokolade — aber Wassereinlagerungen möglich.',         feels:[{t:'Leicht aufgedunsen',k:'bad'},{t:'Okay',k:'neu'}]}
+    ],
+    verdict:'Eis ist <strong>milder als reine Süßigkeiten</strong>, aber das Fett macht die Verdauung schwerer und kann den Tiefschlaf stören.'
+  },
+  { id:'limonade', em:'🥤', name:'Limonade', zucker:35,
+    steps:[
+      {plus:0,  title:'Limonade trinken',      desc:'Flüssiger Zucker — noch schneller als fester. Direkt ins Blut.', feels:[{t:'Erfrischend',k:'ok'}]},
+      {plus:8,  title:'Schnellster Spike ever', desc:'Kein Kauen, kein Ballaststoff, kein Bremser.',                  feels:[{t:'Sofort wach 😳',k:'bad'},{t:'Herz rast',k:'bad'}]},
+      {plus:35, title:'Schneller Crash',        desc:'Was schnell hoch geht, kommt schnell runter.',                   feels:[{t:'Zittern',k:'bad'},{t:'Hungrig',k:'bad'}]},
+      {plus:60, title:'Kohlensäure-Effekt',     desc:'Blähungen, aufgeblähter Bauch, Sodbrennen im Liegen.',           feels:[{t:'Aufgebläht 🎈',k:'bad'},{t:'Sodbrennen',k:'bad'}]},
+      {plus:480,title:'Morgen danach',          desc:'Dehydriert — Zucker + Kohlensäure entziehen Wasser.',            feels:[{t:'Durstig',k:'bad'},{t:'Kopfschmerzen',k:'bad'}]}
+    ],
+    verdict:'Limonade abends ist <strong>flüssiger Zucker pur</strong>. Schnellster Weg den Blutzucker zu crashen + Kohlensäure stört den Magen im Liegen.'
+  },
+  { id:'kuchen', em:'🎂', name:'Kuchen', zucker:40,
+    steps:[
+      {plus:0,  title:'Kuchen essen',       desc:'Weißmehl + Zucker + Butter — triple Belastung.',                   feels:[{t:'Satt',k:'neu'},{t:'Glücklich 😊',k:'ok'}]},
+      {plus:30, title:'Starker Spike',       desc:'Mehl + Zucker zusammen erzeugen stärkeren Spike als Zucker allein.', feels:[{t:'Schwer',k:'neu'},{t:'Schläfrig',k:'neu'}]},
+      {plus:90, title:'Crash + Trägheit',   desc:'Körper beschäftigt mit Verarbeitung. Wenig Energie für anderes.',   feels:[{t:'Sehr müde 😴',k:'bad'}]},
+      {plus:480,title:'Morgen danach',       desc:'Wassereinlagerungen durch Kohlenhydrate. Gesicht aufgedunsen.',     feels:[{t:'Aufgedunsen 💧',k:'bad'},{t:'Heißhunger',k:'bad'}]}
+    ],
+    verdict:'Kuchen abends ist ein klassischer Schlaf-Saboteur. Weißmehl + Zucker erzeugen einen <strong>massiven Spike</strong> — typischer Grund für Wassereinlagerungen über Nacht.'
+  },
+  { id:'energydrink', em:'⚡', name:'Energy Drink', zucker:30,
+    steps:[
+      {plus:0,  title:'Energy Drink trinken',    desc:'Dreifach-Wirkstoff: Zucker + Koffein + Taurin — jeder stört Schlaf.', feels:[{t:'Sofort wach ⚡',k:'bad'},{t:'Herz rast',k:'bad'}]},
+      {plus:10, title:'Koffein-Peak',             desc:'Koffein blockiert Adenosin für 4–6h. Um 21 Uhr = bis 3 Uhr aktiv.',  feels:[{t:'Völlig wach',k:'bad'},{t:'Angespannt',k:'bad'}]},
+      {plus:120,title:'Einschlafen unmöglich',    desc:'Koffein-Halbwertszeit: 5–6h. Schlaf praktisch nicht möglich.',        feels:[{t:'Kein Schlaf',k:'bad'},{t:'Gedankenkarussell',k:'bad'}]},
+      {plus:360,title:'Crash um 3 Uhr',           desc:'Wenn Koffein nachlässt: harter Absturz. Oft gegen 3–4 Uhr.',          feels:[{t:'Aufwachen 3 Uhr',k:'bad'},{t:'Schweißgebadet',k:'bad'}]},
+      {plus:480,title:'Morgen danach',            desc:'Schlechteste Schlafqualität. Cortisol maximal. Hormonachse gestört.', feels:[{t:'Zerstört 💀',k:'bad'},{t:'Depressiv möglich',k:'bad'}]}
+    ],
+    verdict:'Energy Drink abends ist der <strong>absolute Worst-Case</strong>. Koffein-Halbwertszeit 5–6h — um 21 Uhr getrunken bis 3 Uhr aktiv im Blut. Bitte nie abends.'
+  }
+];
+
+const ACT_CATEGORIES = [
+  { label:'🏃 Ausdauer', acts:[
+    {k:'gehen',      em:'🚶', name:'Gehen',         met:3.5},
+    {k:'laufen',     em:'🏃', name:'Laufen',         met:9.8},
+    {k:'radfahren',  em:'🚴', name:'Radfahren',      met:7.5},
+    {k:'schwimmen',  em:'🏊', name:'Schwimmen',      met:8.0},
+    {k:'wandern',    em:'⛰️', name:'Wandern',        met:6.0},
+    {k:'treppe',     em:'🪜', name:'Treppen',        met:8.0},
+    {k:'rudern',     em:'🚣', name:'Rudern',         met:7.0},
+    {k:'kajak',      em:'🛶', name:'Kajak',          met:5.0},
+    {k:'sup',        em:'🏄', name:'Stand-Up-Paddle', met:6.0},
+    {k:'triathlon',  em:'🥇', name:'Triathlon',      met:10.0},
+    {k:'inline',     em:'🛼', name:'Inline Skaten',  met:7.5},
+    {k:'seilspringen',em:'🪢',name:'Seilspringen',   met:12.3},
+  ]},
+  { label:'💪 Kraft & Fitness', acts:[
+    {k:'kraftsport', em:'🏋️', name:'Kraftsport',    met:5.0},
+    {k:'crossfit',   em:'🔥', name:'CrossFit',       met:8.0},
+    {k:'hiit',       em:'⚡', name:'HIIT',           met:8.5},
+    {k:'circuit',    em:'🔄', name:'Circuit Training',met:6.0},
+    {k:'aerobics',   em:'🤸', name:'Aerobics',       met:6.5},
+    {k:'pilates',    em:'🧘', name:'Pilates',        met:3.0},
+    {k:'yoga',       em:'🧘', name:'Yoga',           met:2.5},
+    {k:'stretching', em:'🤾', name:'Stretching',     met:2.0},
+    {k:'zumba',      em:'💃', name:'Zumba',          met:6.5},
+    {k:'tanzen',     em:'🕺', name:'Tanzen',         met:5.5},
+  ]},
+  { label:'⚽ Mannschaftssport', acts:[
+    {k:'fussball',   em:'⚽', name:'Fußball',        met:7.0},
+    {k:'basketball', em:'🏀', name:'Basketball',     met:6.5},
+    {k:'volleyball', em:'🏐', name:'Volleyball',     met:4.0},
+    {k:'handball',   em:'🤾', name:'Handball',       met:8.0},
+    {k:'baseball',   em:'⚾', name:'Baseball',       met:5.0},
+    {k:'rugby',      em:'🏉', name:'Rugby',          met:8.3},
+    {k:'hockey',     em:'🏑', name:'Hockey',         met:8.0},
+    {k:'wasserball', em:'🤽', name:'Wasserball',     met:10.0},
+    {k:'cricket',    em:'🏏', name:'Cricket',        met:5.0},
+    {k:'lacrosse',   em:'🥍', name:'Lacrosse',       met:8.0},
+  ]},
+  { label:'🎾 Schlägersport', acts:[
+    {k:'tennis',     em:'🎾', name:'Tennis',         met:7.3},
+    {k:'tischtennis',em:'🏓', name:'Tischtennis',    met:4.0},
+    {k:'badminton',  em:'🏸', name:'Badminton',      met:5.5},
+    {k:'squash',     em:'🟡', name:'Squash',         met:12.0},
+    {k:'racquetball',em:'🎱', name:'Racquetball',    met:10.0},
+    {k:'golf',       em:'⛳', name:'Golf',            met:4.8},
+  ]},
+  { label:'🥊 Kampfsport', acts:[
+    {k:'boxen',      em:'🥊', name:'Boxen',          met:9.0},
+    {k:'judo',       em:'🥋', name:'Judo',           met:10.3},
+    {k:'karate',     em:'🥋', name:'Karate',         met:10.0},
+    {k:'taekwondo',  em:'🦵', name:'Taekwondo',      met:10.0},
+    {k:'kickboxen',  em:'🥊', name:'Kickboxen',      met:10.0},
+    {k:'ringen',     em:'🤼', name:'Ringen',         met:9.8},
+    {k:'mma',        em:'🤺', name:'MMA',            met:10.5},
+  ]},
+  { label:'⛷️ Wintersport', acts:[
+    {k:'skifahren',  em:'⛷️', name:'Skifahren',      met:6.8},
+    {k:'snowboard',  em:'🏂', name:'Snowboarden',    met:5.3},
+    {k:'schlittschuh',em:'⛸️',name:'Schlittschuh',   met:7.0},
+    {k:'langlauf',   em:'🎿', name:'Langlauf',       met:9.0},
+    {k:'schneeschuh',em:'🥾', name:'Schneeschuhwandern',met:5.8},
+  ]},
+  { label:'🌊 Wassersport', acts:[
+    {k:'surfen',     em:'🏄', name:'Surfen',         met:3.0},
+    {k:'tauchen',    em:'🤿', name:'Tauchen',        met:7.0},
+    {k:'segeln',     em:'⛵', name:'Segeln',         met:3.0},
+    {k:'wasserski',  em:'🎿', name:'Wasserski',      met:6.0},
+  ]},
+  { label:'🎭 Weitere', acts:[
+    {k:'klettern',   em:'🧗', name:'Klettern',       met:8.0},
+    {k:'skateboard', em:'🛹', name:'Skateboard',     met:5.0},
+    {k:'reiten',     em:'🐎', name:'Reiten',         met:5.5},
+    {k:'bogenschiessen',em:'🏹',name:'Bogenschießen', met:3.5},
+    {k:'leichtathletik',em:'🏅',name:'Leichtathletik',met:9.0},
+    {k:'parkour',    em:'🏃', name:'Parkour',        met:8.0},
+    {k:'rollstuhlsport',em:'♿',name:'Rollstuhlsport',met:4.5},
+  ]}
+];
+
+// Flat lookup für Berechnungen
+const ACT_META = {};
+ACT_CATEGORIES.forEach(cat => cat.acts.forEach(a => { ACT_META[a.k] = {met:a.met, em:a.em, name:a.name}; }));
+const INT_MULT = {low:0.8, medium:1.0, high:1.3};
+const INT_NAME = {low:'Leicht', medium:'Mittel', high:'Intensiv'};
+
+// ══════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ══════════════════════════════════════════
+// PWA INSTALL
+// ══════════════════════════════════════════
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').style.display = 'flex';
+});
+function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+    document.getElementById('installBanner').style.display = 'none';
+  });
+}
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').style.display = 'none';
+});
+
+// ══════════════════════════════════════════
+// TIMER
+// ══════════════════════════════════════════
+let timerInterval = null, startTs = null;
+
+function loadTimer() {
+  const saved = localStorage.getItem('zf_start');
+  if (saved) {
+    startTs = parseInt(saved);
+    document.getElementById('startForm').style.display = 'none';
+    document.getElementById('statusPill').style.display = 'flex';
+    document.getElementById('resetBtn').style.display = 'block';
+    startInterval();
+  } else {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('startTime').value = now.toISOString().slice(0,16);
+  }
+}
+
+function startTimer() {
+  const v = document.getElementById('startTime').value;
+  if (!v) return;
+  startTs = new Date(v).getTime();
+  localStorage.setItem('zf_start', startTs);
+  document.getElementById('startForm').style.display = 'none';
+  document.getElementById('statusPill').style.display = 'flex';
+  document.getElementById('resetBtn').style.display = 'block';
+  startInterval();
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  localStorage.removeItem('zf_start');
+  startTs = null;
+  document.getElementById('timerDisplay').textContent = '00:00:00';
+  document.getElementById('timerSub').textContent = 'Starte deinen Tracker';
+  document.getElementById('startForm').style.display = 'block';
+  document.getElementById('statusPill').style.display = 'none';
+  document.getElementById('resetBtn').style.display = 'none';
+  renderMilestones();
+}
+
+function startInterval() { updateTimer(); timerInterval = setInterval(updateTimer, 1000); }
+
+function updateTimer() {
+  const diff = Date.now() - startTs;
+  if (diff < 0) return;
+  const s = Math.floor(diff/1000)%60, m = Math.floor(diff/60000)%60;
+  const h = Math.floor(diff/3600000)%24, d = Math.floor(diff/86400000);
+  document.getElementById('timerDisplay').textContent = d > 0
+    ? `${d}d ${String(h).padStart(2,'0')}h`
+    : `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  document.getElementById('timerSub').textContent = d > 0
+    ? `${d} Tag${d!==1?'e':''} zuckerfrei` : `${h}h ${m}min zuckerfrei`;
+  renderMilestones();
+}
+
+function getElapsedMin() { return startTs ? Math.floor((Date.now()-startTs)/60000) : 0; }
+
+function renderMilestones() {
+  const el = getElapsedMin();
+  document.getElementById('milestoneList').innerHTML = getMilestones().map(m => {
+    const done = el >= m.min;
+    return `<div class="milestone ${done?'reached':'locked'}">
+      <div class="m-time">${m.time}</div>
+      <div>
+        <div class="m-title">${done?'✅ ':' '}${m.title}</div>
+        <div class="m-desc">${m.desc}</div>
+        <div class="m-tags">${m.tags.map(tag=>`<span class="m-tag">${tag}</span>`).join('')}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// KÖRPER
+// ══════════════════════════════════════════
+function renderBody() {
+  document.getElementById('bodyGrid').innerHTML = getOrgans().map(o => `
+    <div class="body-card">
+      <div class="body-emoji">${o.em}</div>
+      <div class="body-name">${o.name}</div>
+      ${o.items.map(i=>`<div class="body-item"><span class="b-time">${i.t}</span><span class="b-text">${i.tx}</span></div>`).join('')}
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+// ZUCKERARTEN
+// ══════════════════════════════════════════
+function renderSugar() {
+  document.getElementById('sugarGrid').innerHTML = SUGARS.map((s,i) => `
+    <div class="sugar-card" id="sc${i}" onclick="toggleSugar(${i})">
+      <div class="sugar-head">
+        <div class="sugar-icon" style="background:${s.bg}">${s.em}</div>
+        <div>
+          <div class="sugar-name" style="color:${s.color}">${s.name}</div>
+          <div class="sugar-aka">${s.aka}</div>
+        </div>
+      </div>
+      <div class="bar-row">
+        <span class="bar-lbl">Risiko</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${s.danger}%;background:${s.color}"></div></div>
+        <span class="bar-pct" style="color:${s.color}">${s.danger}%</span>
+      </div>
+      <div class="sugar-desc">${s.desc}</div>
+      <div class="sugar-effects">
+        <div class="divider">Wirkung</div>
+        ${s.effects.map(e=>`<div class="effect-row"><span class="effect-em">${e.em}</span><span class="effect-txt">${e.tx}</span></div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+function toggleSugar(i) { document.getElementById('sc'+i).classList.toggle('open'); }
+
+// ══════════════════════════════════════════
+// UHRZEIT
+// ══════════════════════════════════════════
+let selectedFood = 'schokolade';
+
+function renderFoodPicker() {
+  document.getElementById('foodPicker').innerHTML = FOODS.map(f => `
+    <div class="food-btn ${f.id===selectedFood?'active':''}" onclick="selectFood('${f.id}',this)">
+      <div class="food-em">${f.em}</div>
+      <div class="food-nm">${f.name}</div>
+    </div>`).join('');
+}
+
+function selectFood(id, el) {
+  selectedFood = id;
+  document.querySelectorAll('.food-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function updateNowTime() {
+  const n = new Date();
+  document.getElementById('nowTime').textContent =
+    `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')} Uhr`;
+}
+setInterval(updateNowTime, 1000); updateNowTime();
+
+function runUhrzeit() {
+  const timeVal = document.getElementById('eatTime').value || '21:00';
+  const [hS,mS] = timeVal.split(':');
+  const bh = parseInt(hS), bm = parseInt(mS);
+  const food = FOODS.find(f => f.id === selectedFood);
+
+  const fmt = (plusMin) => {
+    let t = bh*60+bm+plusMin;
+    return `${String(Math.floor(t/60)%24).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
+  };
+
+  const h = bh;
+  const warnTxt = h >= 21
+    ? '⚠️ <strong>Sehr schlechter Zeitpunkt.</strong> Kurz vor dem Schlafen — maximale Schlafstörung.'
+    : h >= 19 ? '🟡 <strong>Ungünstig.</strong> 2–3h vor dem Schlafen — mäßiger Einfluss.'
+    : h >= 17 ? '🟢 <strong>Akzeptabel.</strong> Genug Zeit zur Verarbeitung.'
+    : '✅ <strong>Guter Zeitpunkt.</strong> Körper hat noch viel Zeit.';
+
+  const stepsHtml = food.steps.map((st,i) => `
+    <div class="uhr-step" style="animation-delay:${i*0.07}s">
+      <div class="uhr-time">${fmt(st.plus)}<br><span style="font-size:0.62rem;color:var(--muted)">+${st.plus}min</span></div>
+      <div>
+        <div class="uhr-title">${st.title}</div>
+        <div class="uhr-desc">${st.desc}</div>
+        <div class="feel-row">${st.feels.map(f=>`<span class="feel-tag feel-${f.k}">${f.t}</span>`).join('')}</div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('uhrzeitResult').innerHTML = `
+    <div class="uhr-warn">${food.em} <strong>${food.name}</strong> um ${timeVal} Uhr<br>${warnTxt}</div>
+    <div class="section-title">Was jetzt passiert</div>
+    ${stepsHtml}
+    <div class="verdict">
+      <div class="verdict-title">💡 Fazit</div>
+      <div class="verdict-txt">${food.verdict}</div>
+    </div>`;
+  document.getElementById('uhrzeitResult').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ══════════════════════════════════════════
+// AKTIVITÄT
+// ══════════════════════════════════════════
+let selAct = 'gehen', selSex = 'm', selInt = 'low';
+
+function renderActPicker(containerId, prefix) {
+  const defaultAct = prefix==='act' ? selAct : liveActSel;
+  const wrap = document.getElementById(containerId);
+  wrap.style.cssText = 'width:100%;overflow:hidden';
+
+  let html = `
+  <input type="text" placeholder="🔍 Sportart suchen..."
+    oninput="filterActs(this.value,'${containerId}','${prefix}')"
+    style="display:block;width:100%;box-sizing:border-box;background:var(--surface);border:1px solid var(--border);
+           color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.85rem;
+           padding:0.65rem 0.9rem;border-radius:0.75rem;outline:none;margin-bottom:1.2rem">`;
+
+  ACT_CATEGORIES.forEach(cat => {
+    html += `
+    <div style="display:block;width:100%;margin-bottom:1.4rem">
+      <div style="display:block;width:100%;font-size:0.68rem;text-transform:uppercase;
+                  letter-spacing:0.14em;color:var(--accent);font-weight:700;
+                  background:rgba(232,164,39,0.08);border-radius:0.5rem;
+                  padding:0.35rem 0.7rem;margin-bottom:0.6rem">${cat.label}</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.5rem;width:100%">`;
+    cat.acts.forEach(a => {
+      const isActive = a.k === defaultAct;
+      html += `
+        <div onclick="selectAct('${a.k}',this,'${prefix}')"
+          id="actbtn-${containerId}-${a.k}"
+          style="background:${isActive?'rgba(232,164,39,0.12)':'var(--surface)'};
+                 border:1px solid ${isActive?'var(--accent)':'var(--border)'};
+                 border-radius:0.85rem;padding:0.85rem 0.4rem;
+                 text-align:center;cursor:pointer;box-sizing:border-box;
+                 min-width:0;overflow:hidden">
+          <div style="font-size:1.4rem;margin-bottom:0.25rem;line-height:1">${a.em}</div>
+          <div style="font-size:0.76rem;font-weight:500;color:var(--text);
+                      white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name}</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-top:0.1rem">MET ${a.met}</div>
+        </div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  wrap.innerHTML = html;
+}
+
+function filterActs(query, containerId, prefix) {
+  const q = query.toLowerCase().trim();
+  const wrap = document.getElementById(containerId);
+  if (!q) { renderActPicker(containerId, prefix); return; }
+
+  const results = [];
+  ACT_CATEGORIES.forEach(cat => cat.acts.forEach(a => {
+    if (a.name.toLowerCase().includes(q)) results.push(a);
+  }));
+  const defaultAct = prefix==='act' ? selAct : liveActSel;
+
+  let html = `
+  <input type="text" placeholder="🔍 Sportart suchen..."
+    oninput="filterActs(this.value,'${containerId}','${prefix}')"
+    value="${q}"
+    style="display:block;width:100%;box-sizing:border-box;background:var(--surface);border:1px solid var(--border);
+           color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.85rem;
+           padding:0.65rem 0.9rem;border-radius:0.75rem;outline:none;margin-bottom:1rem">
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.5rem;width:100%">`;
+
+  if (!results.length) {
+    html += `<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:0.82rem;padding:1.5rem 0">Keine Sportart gefunden 🤷</div>`;
+  } else {
+    results.forEach(a => {
+      const isActive = a.k === defaultAct;
+      html += `
+        <div onclick="selectAct('${a.k}',this,'${prefix}')"
+          id="actbtn-${containerId}-${a.k}"
+          style="background:${isActive?'rgba(232,164,39,0.12)':'var(--surface)'};
+                 border:1px solid ${isActive?'var(--accent)':'var(--border)'};
+                 border-radius:0.85rem;padding:0.85rem 0.4rem;
+                 text-align:center;cursor:pointer;box-sizing:border-box;min-width:0">
+          <div style="font-size:1.4rem;margin-bottom:0.25rem;line-height:1">${a.em}</div>
+          <div style="font-size:0.76rem;font-weight:500;color:var(--text);
+                      white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name}</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-top:0.1rem">MET ${a.met}</div>
+        </div>`;
+    });
+  }
+  html += `</div>`;
+  wrap.innerHTML = html;
+  wrap.querySelector('input').focus();
+}
+
+function selectAct(k, el, prefix) {
+  if (prefix === 'act') selAct = k; else liveActSel = k;
+  const containerId = prefix === 'act' ? 'actPicker' : 'liveActPicker';
+  document.querySelectorAll(`#${containerId} .act-btn`).forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+function setSex(s,btn) { selSex=s; document.querySelectorAll('#sexM,#sexF').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+function setInt(i,btn) { selInt=i; document.querySelectorAll('#intL,#intM,#intH').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+function updateDurLbl(v, id) {
+  const h=Math.floor(v/60), m=v%60;
+  document.getElementById(id).textContent = v>=60?(m>0?`${h}h ${m}min`:`${h}h`):`${v} min`;
+}
+
+function calcSugar(met, weight, dur, steps, intensity) {
+  const kcalAct = met * INT_MULT[intensity] * weight * (dur/60);
+  const kcalSteps = steps * (weight/70) * 0.04;
+  const kcal = Math.round(kcalAct + kcalSteps);
+  const pct = intensity==='high'?0.70:intensity==='medium'?0.55:0.35;
+  const sugar = Math.round(kcal * pct / 4);
+  return { kcal, sugar, glycogen:Math.round(sugar*0.6), blood:Math.round(sugar*0.4), pct };
+}
+
+function calcActivity() {
+  const weight = parseFloat(document.getElementById('actWeight').value)||75;
+  const steps  = parseInt(document.getElementById('actSteps').value)||0;
+  const dur    = parseInt(document.getElementById('actDur').value)||30;
+  const {kcal, sugar, glycogen, blood, pct} = calcSugar(ACT_META[selAct].met, weight, dur, steps, selInt);
+  const isH = selInt==='high', isM = selInt==='medium', longDur = dur>=45;
+  let phase, phasePct;
+  if (isH&&longDur){phase='🔥 Fettverbrennung + Glykogen-Abbau';phasePct=85;}
+  else if (isM||dur>=30){phase='⚡ Gemischt — Zucker & Fett';phasePct=55;}
+  else{phase='🍬 Primär Zuckerverbrennung';phasePct=35;}
+  const phaseExp = isH&&longDur
+    ? 'Bei hoher Intensität über 45 Min leert sich das Glykogen. Der Körper schaltet auf Fettverbrennung um.'
+    : (isM||dur>=30) ? 'Gemischte Energiequellen — ideale Ausdauerzone.'
+    : 'Bei leichter Aktivität verbrennt der Körper primär Blutzucker — gut für Blutzuckerkontrolle.';
+
+  const organHtml = getOrganHtml(selAct, selInt, dur, sugar, glycogen);
+
+  document.getElementById('actResult').innerHTML = `
+    <div class="card" style="text-align:center;border-color:rgba(232,164,39,0.4)">
+      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:0.3rem">${ACT_META[selAct].em} ${ACT_META[selAct].name} · ${dur}min · ${INT_NAME[selInt]} · ${steps.toLocaleString('de-DE')} Schritte</div>
+      <div class="timer-big" style="font-size:3.5rem">${sugar}g</div>
+      <div style="color:var(--muted);font-size:0.82rem">Zucker verbrannt</div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-val">${kcal}</div><div class="stat-lbl">Kalorien</div><div class="stat-sub">kcal gesamt</div></div>
+      <div class="stat-box"><div class="stat-val">${sugar}g</div><div class="stat-lbl">Zucker weg</div><div class="stat-sub">${Math.round(pct*100)}% Glukose</div></div>
+      <div class="stat-box"><div class="stat-val">${glycogen}g</div><div class="stat-lbl">Glykogen</div><div class="stat-sub">aus Muskeln/Leber</div></div>
+      <div class="stat-box"><div class="stat-val">${blood}g</div><div class="stat-lbl">Blutzucker</div><div class="stat-sub">direkt verbraucht</div></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Das entspricht...</div>
+      <div class="equiv-row">
+        <div class="equiv-box"><div class="equiv-em">🍫</div><div class="equiv-val">${(sugar/25).toFixed(1)}</div><div class="equiv-lbl">Schokoriegel</div></div>
+        <div class="equiv-box"><div class="equiv-em">🥤</div><div class="equiv-val">${Math.round(sugar/10.6)}</div><div class="equiv-lbl">Gläser Cola</div></div>
+        <div class="equiv-box"><div class="equiv-em">🍬</div><div class="equiv-val">${Math.round(sugar/2)}</div><div class="equiv-lbl">Gummibären</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-size:0.85rem;font-weight:500;margin-bottom:0.5rem">${phase}</div>
+      <div class="burn-track"><div class="burn-fill" style="width:${phasePct}%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.65rem;color:var(--muted);margin-top:0.3rem"><span>🍬 Nur Zucker</span><span>⚖️ Gemischt</span><span>🔥 Fett+Zucker</span></div>
+      <div style="font-size:0.77rem;color:var(--muted);margin-top:0.7rem">${phaseExp}</div>
+    </div>
+    <div class="section-title">Was gerade in deinen Organen passiert</div>
+    ${organHtml}`;
+  document.getElementById('actResult').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function getOrganHtml(act, intensity, dur, sugar, glycogen) {
+  const isH = intensity==='high', isM=intensity==='medium', long=dur>=45;
+  const organs = [
+    { em:'💪', name:'Muskeln',
+      desc:`Verbrennen <strong>${glycogen}g Glykogen</strong>. ${isH?'Typ-II-Fasern aktiv — maximaler Zuckerverbrauch.':'Ausdauerfasern aktiv — effizienter Verbrauch.'} Nach dem Training: GLUT-4-Transporter öffnen sich — Muskeln nehmen Zucker ohne Insulin auf.`,
+      status: isH?'🔥 Maximaler Glykogenabbau':'⚡ Aktiver Zuckerverbrauch', warn:isH},
+    { em:'🫀', name:'Leber',
+      desc:`Gibt Glykogen ins Blut um Blutzucker stabil zu halten. ${long&&isH?'Bei langer Belastung kann Leberglykogen fast leer werden — dann Fettabbau.':'Leber reguliert aktiv und verhindert einen Crash.'}`,
+      status:long&&isH?'⚠️ Glykogen fast leer':'✅ Reguliert Blutzucker', warn:long&&isH},
+    { em:'🧠', name:'Gehirn',
+      desc:`Durchblutung steigt um bis zu 15%. ${isH?'BDNF wird ausgeschüttet — Gedächtnis & Lernfähigkeit verbessern sich direkt.':'Serotonin & Dopamin steigen — bessere Stimmung und Konzentration.'}`,
+      status:'✅ Durchblutung erhöht', warn:false},
+    { em:'❤️', name:'Herz',
+      desc:`Schlägt ${isH?'130–170':isM?'100–130':'70–100'}x/Min. ${isH?'Cardiac Output 4–5-fach erhöht. Herz wird durch regelmäßiges Training effizienter.':'Ideale Zone für Herzgesundheit.'}`,
+      status:isH?'⚡ Maximale Pumpleistung':'✅ Gesunde Belastung', warn:false},
+    { em:'🩺', name:'Bauchspeicheldrüse',
+      desc:`Insulinausschüttung sinkt während Aktivität. Muskeln nehmen Zucker <strong>ohne Insulin auf</strong> (GLUT-4). ${isH?'Effekt hält 24–48h nach dem Training an.':'Schon kurze Einheiten verbessern Insulinsensitivität um 20–30%.'}`,
+      status:'✅ Insulin sinkt — positiv!', warn:false},
+    { em:'🩸', name:'Blut',
+      desc:`<strong>${Math.round(sugar*0.4)}g Glukose</strong> direkt aus dem Blut verbrannt. ${isH&&long?'Nach langer Belastung kann Blutzucker unter Normwert fallen — aufpassen.':'Blutzucker bleibt stabil durch Leber-Glykogenfreisetzung.'}`,
+      status:isH&&long?'⚠️ Blutzucker beobachten':'✅ Glukose effizient abgebaut', warn:isH&&long},
+  ];
+  return organs.map((o,i) => `
+    <div class="organ-card" style="animation-delay:${i*0.06}s">
+      <div class="organ-em">${o.em}</div>
+      <div>
+        <div class="organ-name">${o.name}</div>
+        <div class="organ-desc">${o.desc}</div>
+        <span class="organ-status ${o.warn?'warn':''}">${o.status}</span>
+      </div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+// LIVE DASHBOARD
+// ══════════════════════════════════════════
+let liveActSel = 'gehen', liveIntSel = 'low';
+let liveLog = JSON.parse(localStorage.getItem('zf_livelog')||'[]');
+
+function setLiveInt(i,btn) { liveIntSel=i; document.querySelectorAll('#liveIntL,#liveIntM,#liveIntH').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+
+function addLive() {
+  const weight = 75;
+  const steps = parseInt(document.getElementById('liveSteps').value)||0;
+  const dur   = parseInt(document.getElementById('liveDur').value)||30;
+  const {kcal,sugar} = calcSugar(ACT_META[liveActSel].met, weight, dur, steps, liveIntSel);
+  const now = new Date();
+  const t = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  liveLog.push({act:liveActSel, int:liveIntSel, dur, steps, kcal, sugar, time:t});
+  localStorage.setItem('zf_livelog', JSON.stringify(liveLog));
+  renderLiveLog();
+  renderLiveSummary();
+}
+
+function removeLive(i) {
+  liveLog.splice(i,1);
+  localStorage.setItem('zf_livelog', JSON.stringify(liveLog));
+  renderLiveLog();
+  if (liveLog.length) renderLiveSummary();
+  else { document.getElementById('liveSummary').innerHTML=''; document.getElementById('liveLogWrap').style.display='none'; }
+}
+
+function clearLive() {
+  liveLog=[];
+  localStorage.removeItem('zf_livelog');
+  document.getElementById('liveLogList').innerHTML='';
+  document.getElementById('liveLogWrap').style.display='none';
+  document.getElementById('liveSummary').innerHTML='';
+}
+
+function renderLiveLog() {
+  if (!liveLog.length) return;
+  document.getElementById('liveLogWrap').style.display='block';
+  document.getElementById('liveLogList').innerHTML = liveLog.map((e,i) => `
+    <div class="log-item">
+      <div class="log-em">${ACT_META[e.act].em}</div>
+      <div style="flex:1">
+        <div class="log-name">${ACT_META[e.act].name} · ${e.dur}min · ${INT_NAME[e.int]}</div>
+        <div class="log-sub">${e.steps.toLocaleString('de-DE')} Schritte · ${e.time} Uhr</div>
+      </div>
+      <div class="log-sugar">
+        <div class="log-g">${e.sugar}g</div>
+        <div class="log-glbl">Zucker</div>
+      </div>
+      <button class="remove-btn" onclick="removeLive(${i})">✕</button>
+    </div>`).join('');
+}
+
+function renderLiveSummary() {
+  const totalSugar = liveLog.reduce((s,e)=>s+e.sugar,0);
+  const totalKcal  = liveLog.reduce((s,e)=>s+e.kcal,0);
+  const totalSteps = liveLog.reduce((s,e)=>s+e.steps,0);
+  const totalMins  = liveLog.reduce((s,e)=>s+e.dur,0);
+  const active = totalMins >= 20;
+  const highBurn = totalSugar >= 40;
+  const fatMode = totalMins >= 45 && liveLog.some(e=>e.int==='high');
+
+  let lvl, lvlColor;
+  if (totalSugar>=60){lvl='Sehr aktiv 🏆';lvlColor='#4caf78';}
+  else if (totalSugar>=30){lvl='Aktiv 💪';lvlColor='#e8a427';}
+  else if (totalSugar>=10){lvl='Mäßig aktiv 🚶';lvlColor='#e8a427';}
+  else{lvl='Wenig aktiv 😴';lvlColor='#7a7165';}
+
+  const liveOrgans = [
+    {em:'💪',name:'Muskeln',
+      desc:active?`Haben heute <strong>${Math.round(totalSugar*0.6)}g Glykogen</strong> verbrannt. GLUT-4-Transporter aktiv — Muskeln nehmen Glukose noch bis zu 48h ohne Insulin auf.`:'Wenig aktiv. Mehr Bewegung würde den Insulinbedarf senken.',
+      status:active?'✅ Glykogen verbrannt':'💤 Wenig Aktivität', warn:!active},
+    {em:'🧠',name:'Gehirn',
+      desc:active?`${totalSteps.toLocaleString('de-DE')} Schritte haben BDNF ausgeschüttet. <strong>Konzentration, Gedächtnis und Stimmung</strong> sind heute besser.`:'Wenig Bewegung = weniger BDNF. Schon 15 Min. Gehen hilft messbar.',
+      status:active?'✅ BDNF erhöht':'💤 Wenig neuraler Boost', warn:!active},
+    {em:'🫀',name:'Leber',
+      desc:highBurn?`Leberglykogen wurde angezapft. Bei ${totalSugar}g Gesamtverbrauch hat die Leber aktiv reguliert und überschüssige Fruktose reduziert.`:'Wenig Sport = Leber speichert überschüssige Energie leichter als Fett.',
+      status:highBurn?'✅ Aktiv reguliert':'⚠️ Wenig entlastet', warn:!highBurn},
+    {em:'🩺',name:'Bauchspeicheldrüse',
+      desc:active?'Insulinausschüttung war niedriger durch die Aktivität. <strong>Insulinsensitivität verbessert</strong> — Effekt hält bis morgen an.':'Ohne Bewegung muss mehr Insulin produziert werden. Insulinresistenz kann schleichend steigen.',
+      status:active?'✅ Insulin gespart':'⚠️ Mehr Insulin nötig', warn:!active},
+    {em:'🌿',name:'Darm',
+      desc:active?`Bewegung massiert den Darm. ${totalMins>=30?'30+ Min. Aktivität verbessert die Darmflora nachweislich.':'Kurze Aktivität hilft der Verdauung.'}  Zuckerfrei + Bewegung = beste Kombination für gute Bakterien.`:'Wenig Bewegung verlangsamt die Darmpassage.',
+      status:active?'✅ Darm in Bewegung':'💤 Wenig Darmmassage', warn:false},
+    {em:'✨',name:'Haut',
+      desc:active?`Erhöhte Durchblutung versorgt Hautzellen besser. ${totalSugar>=30?'Glykierung (Zucker-Schäden am Kollagen) sinkt — Haut bleibt elastischer.':'Schon moderate Aktivität verbessert den Hautstoffwechsel.'}  Schwitzen reinigt die Poren.`:'Wenig Aktivität = weniger Hautdurchblutung.',
+      status:active?'✅ Haut durchblutet':'💤 Wenig Boost', warn:false},
+  ];
+
+  document.getElementById('liveSummary').innerHTML = `
+    <div class="card" style="text-align:center;border-color:rgba(232,164,39,0.4)">
+      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.1em">Heutiger Zucker-Abbau</div>
+      <div class="big-number">${totalSugar}g</div>
+      <div class="big-label">Zucker heute verbrannt</div>
+      <div style="display:inline-flex;align-items:center;gap:0.4rem;background:rgba(76,175,120,0.1);border:1px solid rgba(76,175,120,0.3);color:#4caf78;font-size:0.75rem;padding:0.3rem 0.9rem;border-radius:2rem;margin-top:0.8rem">
+        <span class="pulse"></span>${lvl}
+      </div>
+    </div>
+    <div class="three-grid" style="margin-bottom:0.9rem">
+      <div class="mini-stat"><div class="mini-em">👟</div><div class="mini-val">${totalSteps>=1000?(totalSteps/1000).toFixed(1)+'k':totalSteps}</div><div class="mini-lbl">Schritte</div></div>
+      <div class="mini-stat"><div class="mini-em">⏱️</div><div class="mini-val">${totalMins}min</div><div class="mini-lbl">Aktiv</div></div>
+      <div class="mini-stat"><div class="mini-em">🔥</div><div class="mini-val">${totalKcal}</div><div class="mini-lbl">kcal</div></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Das entspricht...</div>
+      <div class="equiv-row">
+        <div class="equiv-box"><div class="equiv-em">🍫</div><div class="equiv-val">${(totalSugar/25).toFixed(1)}</div><div class="equiv-lbl">Schokoriegel</div></div>
+        <div class="equiv-box"><div class="equiv-em">🥤</div><div class="equiv-val">${Math.round(totalSugar/10.6)}</div><div class="equiv-lbl">Gläser Cola</div></div>
+        <div class="equiv-box"><div class="equiv-em">🍬</div><div class="equiv-val">${Math.round(totalSugar/2)}</div><div class="equiv-lbl">Gummibären</div></div>
+        <div class="equiv-box"><div class="equiv-em">🧁</div><div class="equiv-val">${(totalSugar/30).toFixed(1)}</div><div class="equiv-lbl">Muffins</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-size:0.85rem;font-weight:500;margin-bottom:0.5rem">${fatMode?'🔥 Du bist im Fettverbrennungsmodus!':'⏳ Fettverbrennung ' + (totalMins>=45?'fast':'in ~'+(45-totalMins)+'min')}</div>
+      <div class="burn-track"><div class="burn-fill" style="width:${Math.min(100,(totalMins/45)*100)}%"></div></div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-top:0.5rem">${fatMode?'Glykogen weitgehend leer — Körper verbrennt primär Fett.':'Noch '+Math.max(0,45-totalMins)+' Min. intensive Aktivität bis zum Fettverbrennungs-Switch.'}</div>
+    </div>
+    <div class="section-title">Was gerade in deinen Organen passiert</div>
+    ${liveOrgans.map((o,i)=>`
+      <div class="organ-card" style="animation-delay:${i*0.05}s">
+        <div class="organ-em">${o.em}</div>
+        <div>
+          <div class="organ-name">${o.name}</div>
+          <div class="organ-desc">${o.desc}</div>
+          <span class="organ-status ${o.warn?'warn':''}">${o.status}</span>
+        </div>
+      </div>`).join('')}
+  `;
+}
+
+
+// ══════════════════════════════════════════
+// ESSEN LOGGER & BARCODE SCANNER
+// ══════════════════════════════════════════
+
+// Lokale Lebensmittel-Datenbank (Zucker pro 100g)
+const FOOD_DB = [
+  {name:'Coca Cola',        em:'🥤', sugar:10.6, kcal:42,  cat:'Getränk',      info:'Haushaltszucker + Phosphorsäure'},
+  {name:'Fanta Orange',     em:'🥤', sugar:9.0,  kcal:38,  cat:'Getränk',      info:'Fruktose-Glukose-Sirup'},
+  {name:'Red Bull',         em:'⚡', sugar:11.0, kcal:45,  cat:'Energy Drink', info:'Zucker + Koffein + Taurin'},
+  {name:'Nutella',          em:'🍫', sugar:56.3, kcal:530, cat:'Aufstrich',    info:'~57g Zucker pro 100g'},
+  {name:'Milchschokolade',  em:'🍫', sugar:56.0, kcal:535, cat:'Süßigkeit',    info:'Saccharose + Milchzucker'},
+  {name:'Gummibären',       em:'🐻', sugar:77.0, kcal:343, cat:'Süßigkeit',    info:'Reiner Haushaltszucker'},
+  {name:'Cornflakes',       em:'🥣', sugar:8.0,  kcal:357, cat:'Frühstück',    info:'+ Malzzucker aus Stärke'},
+  {name:'Weißbrot',         em:'🍞', sugar:4.0,  kcal:265, cat:'Brot',         info:'Stärke → schnell zu Glukose'},
+  {name:'Apfel',            em:'🍎', sugar:10.4, kcal:52,  cat:'Obst',         info:'Fruktose + Ballaststoffe'},
+  {name:'Banane',           em:'🍌', sugar:12.2, kcal:89,  cat:'Obst',         info:'Glukose + Fruktose + Saccharose'},
+  {name:'Traube',           em:'🍇', sugar:16.0, kcal:67,  cat:'Obst',         info:'Sehr viel natürliche Fruktose'},
+  {name:'Orange',           em:'🍊', sugar:9.4,  kcal:47,  cat:'Obst',         info:'Fruktose mit Ballaststoffen'},
+  {name:'Joghurt Natur',   em:'🥛', sugar:4.7,  kcal:63,  cat:'Milch',        info:'Laktose — gemäßigt'},
+  {name:'Fruchtjoghurt',   em:'🫙', sugar:13.0, kcal:90,  cat:'Milch',        info:'Laktose + Haushaltszucker'},
+  {name:'Orangensaft',     em:'🍊', sugar:8.7,  kcal:45,  cat:'Getränk',      info:'Fruktose ohne Ballaststoffe'},
+  {name:'Pommes Frites',   em:'🍟', sugar:0.3,  kcal:312, cat:'Fast Food',    info:'Wenig Zucker, aber viel Stärke'},
+  {name:'Hamburger Bun',   em:'🍔', sugar:6.0,  kcal:280, cat:'Fast Food',    info:'Weißmehl → schnelle Glukose'},
+  {name:'Ketchup',         em:'🍅', sugar:22.0, kcal:101, cat:'Sauce',        info:'Versteckter Zucker!'},
+  {name:'Vollkornbrot',    em:'🍞', sugar:2.5,  kcal:230, cat:'Brot',         info:'Ballaststoffe verlangsamen Aufnahme'},
+  {name:'Honig',           em:'🍯', sugar:82.0, kcal:304, cat:'Süßungsmittel',info:'Fruktose + Glukose'},
+  {name:'Kuchen Stück',    em:'🎂', sugar:35.0, kcal:380, cat:'Gebäck',       info:'Saccharose + Weißmehl + Fett'},
+  {name:'Pizza Margherita',em:'🍕', sugar:4.0,  kcal:266, cat:'Fast Food',    info:'Stärke dominiert'},
+  {name:'Protein Riegel',  em:'🏋️',sugar:18.0, kcal:380, cat:'Fitness',      info:'Oft mehr Zucker als gedacht'},
+  {name:'Müsliriegel',     em:'🍫', sugar:32.0, kcal:420, cat:'Snack',        info:'Versteckter Zucker als "gesund"'},
+  {name:'Smoothie',        em:'🥤', sugar:14.0, kcal:70,  cat:'Getränk',      info:'Viel Fruktose ohne Ballaststoffe'},
+  {name:'Schokoladeneis',  em:'🍦', sugar:22.0, kcal:216, cat:'Dessert',      info:'Saccharose + Milchzucker'},
+  {name:'Haferflocken',    em:'🥣', sugar:1.1,  kcal:367, cat:'Frühstück',    info:'Langsame Stärke — gut'},
+  {name:'Karotte',         em:'🥕', sugar:4.7,  kcal:41,  cat:'Gemüse',       info:'Natürliche Glukose + Ballaststoffe'},
+  {name:'Broccoli',        em:'🥦', sugar:1.7,  kcal:34,  cat:'Gemüse',       info:'Sehr wenig Zucker — top'},
+  {name:'Süßkartoffel',   em:'🍠', sugar:4.2,  kcal:86,  cat:'Gemüse',       info:'Langsame Energie — besser als Kartoffel'},
+  {name:'Hühnerbrust',    em:'🍗', sugar:0.0,  kcal:165, cat:'Protein',      info:'Kein Zucker'},
+  {name:'Ei',             em:'🥚', sugar:0.0,  kcal:155, cat:'Protein',      info:'Kein Zucker'},
+  {name:'Mandeln',        em:'🌰', sugar:4.2,  kcal:579, cat:'Nüsse',        info:'Wenig Zucker, viel gesundes Fett'},
+  {name:'Erdnüsse',       em:'🥜', sugar:4.7,  kcal:567, cat:'Nüsse',        info:'Kaum Zucker'},
+  {name:'Haribo Goldbären',em:'🐻',sugar:46.0, kcal:343, cat:'Süßigkeit',    info:'Fast nur Haushaltszucker'},
+];
+
+let essenLog = JSON.parse(localStorage.getItem('zf_essenlog')||'[]');
+let scannerStream = null;
+let barcodeDetector = null;
+let scanInterval = null;
+
+function searchFood(query) {
+  const q = query.toLowerCase().trim();
+  const el = document.getElementById('searchResults');
+  if (!q || q.length < 2) { el.innerHTML=''; return; }
+  const results = FOOD_DB.filter(f => f.name.toLowerCase().includes(q)).slice(0,6);
+  if (!results.length) {
+    el.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:0.8rem;padding:0.8rem">Nicht gefunden — versuche Barcode scannen</div>`;
+    return;
+  }
+  el.innerHTML = results.map(f => `
+    <div class="search-result-item" onclick="addEssenItem('${f.name}','${f.em}',${f.sugar},${f.kcal},'${f.cat}','${f.info}')">
+      <div>
+        <div class="sri-name">${f.em} ${f.name}</div>
+        <div class="sri-sub">${f.cat} · ${f.info}</div>
+      </div>
+      <div class="sri-sugar">${f.sugar}g Zucker<br><span style="font-size:0.65rem;color:var(--muted)">pro 100g</span></div>
+    </div>`).join('');
+}
+
+async function startScanner() {
+  const video = document.getElementById('scannerVideo');
+  const status = document.getElementById('scannerStatus');
+  const stopBtn = document.getElementById('stopScanBtn');
+
+  try {
+    scannerStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode:'environment', width:{ideal:1280}, height:{ideal:720} }
+    });
+    video.srcObject = scannerStream;
+    video.style.display = 'block';
+    status.style.display = 'block';
+    stopBtn.style.display = 'block';
+    status.textContent = '📷 Kamera aktiv — halte Barcode vor die Kamera...';
+
+    // BarcodeDetector API (Android Chrome nativ)
+    if ('BarcodeDetector' in window) {
+      barcodeDetector = new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','qr_code']});
+      scanInterval = setInterval(async () => {
+        try {
+          const barcodes = await barcodeDetector.detect(video);
+          if (barcodes.length > 0) {
+            const code = barcodes[0].rawValue;
+            stopScanner();
+            status.style.display='block';
+            status.textContent = `✅ Code erkannt: ${code} — Lade Produktdaten...`;
+            lookupBarcode(code);
+          }
+        } catch(e) {}
+      }, 500);
+    } else {
+      status.textContent = '📷 Kamera aktiv. BarcodeDetector nicht verfügbar — gib den Code manuell ein:';
+      const inp = document.createElement('input');
+      inp.type='tel'; inp.placeholder='Barcode-Nummer eingeben...';
+      inp.className='zf-input'; inp.style.marginTop='0.5rem';
+      inp.onkeydown = (e) => { if(e.key==='Enter'){ stopScanner(); lookupBarcode(inp.value); } };
+      status.after(inp);
+    }
+  } catch(e) {
+    status.style.display='block';
+    status.textContent = '❌ Kamera nicht verfügbar. Bitte Zugriff erlauben oder manuell suchen.';
+  }
+}
+
+function stopScanner() {
+  if (scannerStream) { scannerStream.getTracks().forEach(t=>t.stop()); scannerStream=null; }
+  if (scanInterval) { clearInterval(scanInterval); scanInterval=null; }
+  document.getElementById('scannerVideo').style.display='none';
+  document.getElementById('stopScanBtn').style.display='none';
+}
+
+async function lookupBarcode(code) {
+  const status = document.getElementById('scannerStatus');
+  try {
+    const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
+    const data = await res.json();
+    if (data.status === 1 && data.product) {
+      const p = data.product;
+      const name = p.product_name || p.product_name_de || 'Unbekanntes Produkt';
+      const sugar = parseFloat(p.nutriments?.sugars_100g || p.nutriments?.sugars || 0);
+      const kcal  = parseFloat(p.nutriments?.energy_kcal_100g || p.nutriments?.['energy-kcal_100g'] || 0);
+      const brand = p.brands || '';
+      status.textContent = `✅ Gefunden: ${name}`;
+      addEssenItem(name, '📦', sugar, kcal, brand, `${sugar}g Zucker/100g`);
+    } else {
+      status.textContent = '❌ Produkt nicht gefunden. Versuche eine andere Datenbank oder suche manuell.';
+    }
+  } catch(e) {
+    status.textContent = '❌ Keine Verbindung. Bitte manuell suchen.';
+  }
+}
+
+function addEssenItem(name, em, sugarPer100, kcalPer100, cat, info) {
+  // Portion: Standard 100g, Nutzer kann anpassen
+  const portion = 100;
+  const sugarTotal = Math.round(sugarPer100 * portion / 100 * 10) / 10;
+  const kcalTotal  = Math.round(kcalPer100 * portion / 100);
+  const now = new Date();
+  const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  essenLog.push({name, em, sugarPer100, kcalPer100, sugarTotal, kcalTotal, portion, cat, info, time:timeStr});
+  localStorage.setItem('zf_essenlog', JSON.stringify(essenLog));
+
+  // Clear search
+  document.getElementById('foodSearch').value = '';
+  document.getElementById('searchResults').innerHTML = '';
+  document.getElementById('scannerStatus').style.display='none';
+
+  renderEssenLog();
+  renderEssenBodyEffects();
+}
+
+function removeEssenItem(i) {
+  essenLog.splice(i,1);
+  localStorage.setItem('zf_essenlog', JSON.stringify(essenLog));
+  renderEssenLog();
+  renderEssenBodyEffects();
+}
+
+function clearEssenLog() {
+  essenLog=[];
+  localStorage.removeItem('zf_essenlog');
+  document.getElementById('essenLogWrap').style.display='none';
+  document.getElementById('essenBodyEffects').innerHTML='';
+}
+
+function renderEssenLog() {
+  if (!essenLog.length) { document.getElementById('essenLogWrap').style.display='none'; return; }
+  document.getElementById('essenLogWrap').style.display='block';
+
+  const totalSugar = essenLog.reduce((s,e)=>s+e.sugarTotal,0);
+  const pct = Math.min(100, (totalSugar/75)*100);
+  document.getElementById('totalSugarDisplay').textContent = totalSugar.toFixed(1)+'g';
+  document.getElementById('totalSugarDisplay').style.color =
+    totalSugar>50?'#c45c2e':totalSugar>25?'#e8a427':'#4caf78';
+  document.getElementById('sugarMeterFill').style.width = pct+'%';
+
+  document.getElementById('essenLogList').innerHTML = essenLog.map((e,i) => `
+    <div class="food-log-item">
+      <div class="food-log-em">${e.em}</div>
+      <div style="flex:1">
+        <div class="food-log-name">${e.name}</div>
+        <div class="food-log-sub">${e.portion}g · ${e.time} Uhr · ${e.kcalTotal} kcal</div>
+      </div>
+      <div class="food-log-sugar">
+        <div class="food-log-g">${e.sugarTotal}g</div>
+        <div class="food-log-lbl">Zucker</div>
+      </div>
+      <button onclick="removeEssenItem(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0.2rem">✕</button>
+    </div>`).join('');
+}
+
+function renderEssenBodyEffects() {
+  const total = essenLog.reduce((s,e)=>s+e.sugarTotal,0);
+  if (!total) { document.getElementById('essenBodyEffects').innerHTML=''; return; }
+
+  const isHigh = total > 50, isMed = total > 25;
+  const now = new Date();
+  const fmt = (plusMin) => {
+    const t = now.getHours()*60+now.getMinutes()+plusMin;
+    return `${String(Math.floor(t/60)%24).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
+  };
+
+  const effects = [
+    { plus:0,   title:'Zucker trifft deinen Körper',
+      desc:`${total.toFixed(1)}g Zucker werden aufgenommen. ${isMed?'Das überschreitet die WHO-Tagesempfehlung von 25g.':'Noch im akzeptablen Bereich.'}`,
+      organs:['Mund','Magen','Dünndarm'],
+      feels:[{t:'Süßer Geschmack',k:'neu'},{t:'Wohlgefühl',k:'ok'}]},
+    { plus:15,  title:'Blutzucker-Anstieg',
+      desc:`${isHigh?'Massiver':'Deutlicher'} Anstieg des Blutzuckers. Bauchspeicheldrüse pumpt Insulin. ${isMed?'Bei '+total.toFixed(0)+'g ist der Spike sehr stark.':''}`,
+      organs:['Blut','Bauchspeicheldrüse','Gehirn'],
+      feels:[{t:'Energie',k:'ok'},{t:isHigh?'Sehr wach 😳':'Wach',k:isHigh?'bad':'neu'},{t:'Herz schneller',k:isHigh?'bad':'neu'}]},
+    { plus:30,  title:'Insulin-Peak',
+      desc:`Insulin auf Maximum. Leber beginnt überschüssige Glukose als Fett zu speichern. ${isHigh?'Bei '+total.toFixed(0)+'g sehr starke Fetteinlagerung möglich.':''}`,
+      organs:['Leber','Fettgewebe','Muskeln'],
+      feels:[{t:'Voller Bauch',k:'neu'},{t:isHigh?'Schwere Beine':'Satt',k:isHigh?'bad':'ok'}]},
+    { plus:60,  title:'Blutzucker-Crash',
+      desc:`Was hoch geht, kommt runter. ${isHigh?'Starker Abfall — Reaktiver Unterzucker wahrscheinlich.':'Moderater Abfall — Körper reguliert sich.'}`,
+      organs:['Blut','Gehirn','Nebennieren'],
+      feels:[{t:isHigh?'Heißhunger 😤':'Leicht hungrig',k:isHigh?'bad':'neu'},{t:isHigh?'Müdigkeit':'OK',k:isHigh?'bad':'ok'},{t:isHigh?'Stimmungstief':'',k:'bad'}].filter(f=>f.t)},
+    { plus:120, title:'Fetteinlagerungsphase',
+      desc:`Überschüssiger Zucker (${Math.max(0,total-25).toFixed(0)}g über dem Limit) wird als Fett gespeichert. Leber verarbeitet Fruktose-Anteil.`,
+      organs:['Leber','Fettgewebe'],
+      feels:[{t:'Bauch voll',k:'neu'},{t:isHigh?'Träge':'Normal',k:isHigh?'bad':'ok'}]},
+    { plus:240, title:'Normalisierung',
+      desc:`Blutzucker nähert sich wieder dem Normbereich. ${isMed?'Entzündungsmarker leicht erhöht durch den Zucker-Schub.':'Körper hat gut reguliert.'}`,
+      organs:['Blut','Immunsystem'],
+      feels:[{t:'Wieder normal',k:'ok'},{t:isMed?'Leicht entzündet':'Gut',k:isMed?'bad':'ok'}]},
+  ];
+
+  document.getElementById('essenBodyEffects').innerHTML = `
+    <div class="section-title" style="margin-top:0.5rem">Was jetzt in deinem Körper passiert</div>
+    <div style="background:var(--card);border:1px solid ${isHigh?'rgba(196,92,46,0.4)':isMed?'rgba(232,164,39,0.4)':'rgba(76,175,120,0.4)'};border-radius:1rem;padding:1rem;margin-bottom:1rem;font-size:0.82rem;line-height:1.6">
+      ${isHigh?'⚠️ <strong>Viel Zucker!</strong> '+total.toFixed(1)+'g — das ist '+Math.round(total/25)+'× die WHO-Tagesempfehlung. Dein Körper kämpft gerade.':isMed?'🟡 <strong>Etwas viel.</strong> '+total.toFixed(1)+'g — über der WHO-Empfehlung (25g). Vorsicht!':'✅ <strong>Im Rahmen.</strong> '+total.toFixed(1)+'g — noch unter der WHO-Empfehlung von 25g.'}
+    </div>
+    ${effects.map((ef,i)=>`
+      <div class="body-effect-row" style="animation-delay:${i*0.07}s">
+        <div class="be-time">${fmt(ef.plus)}<br><span style="font-size:0.6rem;color:var(--muted)">+${ef.plus}min</span></div>
+        <div style="flex:1">
+          <div class="be-title">${ef.title}</div>
+          <div class="be-desc">${ef.desc}</div>
+          <div class="be-organs">${ef.organs.map(o=>`<span class="be-organ">${o}</span>`).join('')}</div>
+          <div class="feel-row">${ef.feels.map(f=>`<span class="feel-tag feel-${f.k}">${f.t}</span>`).join('')}</div>
+        </div>
+      </div>`).join('')}
+  `;
+  document.getElementById('essenBodyEffects').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+loadTimer();
+renderMilestones();
+renderBody();
+renderSugar();
+renderFoodPicker();
+renderActPicker('actPicker','act');
+renderActPicker('liveActPicker','live');
+if (liveLog.length) { renderLiveLog(); renderLiveSummary(); }
+if (essenLog.length) { renderEssenLog(); renderEssenBodyEffects(); }
+// Apply saved language
+setLang(currentLang);
+</script>
+</body>
+</html>
